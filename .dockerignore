@@ -1,0 +1,7 @@
+node_modules/
+public/
+dist/
+dist-dispatch/
+.env
+.envrc
+npm-debug.log

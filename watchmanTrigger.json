@@ -1,0 +1,13 @@
+[
+  "trigger",
+  "./",
+  {
+    "name": "dispatch",
+    "expression": [
+      "anyof",
+      ["match", "src/**/*.js", "wholename"],
+      ["match", "src/**/*.jsx", "wholename"]
+    ],
+    "command": ["npm", "run", "build:dev"]
+  }
+]

@@ -1,0 +1,10 @@
+/node_modules/
+.envrc
+.env
+.aws-exports.js
+dist/
+dist-dispatch/
+.tern-port
+.nyc_output
+npm-debug.log
+buildspec.yml.bak
