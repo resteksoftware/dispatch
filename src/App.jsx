@@ -156,14 +156,14 @@ export default class App extends React.Component {
 
   buildStationAssigment(allStations, userStationTracking) {
     //map across allStations to create collection of {id: [station_id], active:T/F}
-    let userStationAssignment = allStations.map( app => {
+    let userStationAssignment = allStations.map( sta => {
 
       if (userStationTracking && userStationTracking.length > 0) {
         for (let i = 0; i < userStationTracking.length; i++) {
-          if( userStationTracking[i]['sta_id'] === app['sta_id'] ) {
+          if( userStationTracking[i]['sta_id'] === sta['sta_id'] ) {
             return {
-              id: app['sta_id'],
-              sta_abbr: app['sta_abbr'],
+              id: sta['sta_id'],
+              sta_abbr: sta['sta_abbr'],
               active: true
             }
           }
@@ -171,8 +171,8 @@ export default class App extends React.Component {
       }
 
       return {
-        id: app['sta_id'],
-        sta_abbr: app['sta_abbr'],
+        id: sta['sta_id'],
+        sta_abbr: sta['sta_abbr'],
         active: false
       }
     })
