@@ -323,11 +323,13 @@ export default class Dispatch extends React.Component {
         </Title>
         
         {
-          this.state.responseToggle
-          ? <ResponseSelect onClick={this.responseToggle}>
-          <RespondOptions handleResponse={this.handleResponse} />
-          </ResponseSelect>
-          : <ResponseThumb onClick={this.responseToggle}></ResponseThumb>
+          this.props.userData.is_volley 
+          ? (this.state.responseToggle
+            ? <ResponseSelect onClick={this.responseToggle}>
+            <RespondOptions handleResponse={this.handleResponse} />
+            </ResponseSelect>
+            : <ResponseThumb onClick={this.responseToggle}></ResponseThumb>)
+          : null  
         }
         
         <DispatchDetails>

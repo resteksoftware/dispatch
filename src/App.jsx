@@ -58,12 +58,12 @@ export default class App extends React.Component {
   componentDidMount() {
     var urlPathname;
 
-    if (!this.props.location) {
+    if (!this.props.location || this.props.location.pathname === '/') {
        urlPathname = '/1/53';
     } else {
        urlPathname = this.props.location.pathname
-    }
-
+    } 
+      
     let { userID, slug } = this.state;
     slug = urlPathname.split('/')[1];
     userID = urlPathname.split('/')[2];
@@ -238,7 +238,8 @@ export default class App extends React.Component {
     let { userID } = this.state;
     let appID = e.target.id.split('-').pop();
     //make change
-    await axios.patch(`/api/track_user_apparatus/${userID}/${appID}`)
+    // TODO: understand how a patch will remove the record if it exists.
+    await axios.patch(`/api/users/track/${userID}/${appID}`)
                .catch((error) => {console.error(`ERROR in PATCH for user/apparatus assignment: ${error}`)})
     //fetch new results reflecting change from above patch
     let userApparatusTrackingData = await axios.get(`/api/track_user_apparatus/${userID}`)
@@ -255,6 +256,8 @@ export default class App extends React.Component {
     let { userID } = this.state;
     let staID = e.target.id.split('-').pop();
     //make change
+    console.log(userID, staID);
+    
     await axios.patch(`/api/track_user_station/${userID}/${staID}`)
                .catch((error) => {console.error(`ERROR in PATCH for user/station assignment: ${error}`)})
     //fetch new results reflecting change from above patch
