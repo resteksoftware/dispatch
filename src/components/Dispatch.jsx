@@ -37,6 +37,8 @@ export default class Dispatch extends React.Component {
     this.setApparatus();
     this.setTimeAgo();
     this.parseCallCategory();
+    console.log('💥');
+    console.log(this.props); 
   }
   
   getCurrentLocation() {
@@ -70,8 +72,6 @@ export default class Dispatch extends React.Component {
   }
   
   setApparatus() {
-    
-    console.log(this.props.dispatchData);
     
     //incoming props seems unpredictable with , and ' '
     let apparatusData = this.props.dispatchData.assignments[0].assignment
@@ -340,7 +340,7 @@ export default class Dispatch extends React.Component {
           !this.state.apparatusAssignment
           ? null
           : this.state.apparatusAssignment.map((apparatus) => {
-            return <Apparatus key={apparatus}>{apparatus}</Apparatus>
+            return <Apparatus key={apparatus.app_id}>{apparatus}</Apparatus>
           })
         }
         </ApparatusContainer>

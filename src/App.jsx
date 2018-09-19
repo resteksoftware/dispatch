@@ -21,6 +21,7 @@ const UserSettings = Loadable({
 });
 
 const GAPI_KEY = process.env.GAPI_KEY;
+const hostname = 'http://localhost:8080' // TODO: add ternary for '' to make links relative (nfd)
 
 export default class App extends React.Component {
   constructor(props) {
@@ -59,7 +60,7 @@ export default class App extends React.Component {
     var urlPathname;
 
     if (!this.props.location || this.props.location.pathname === '/') {
-       urlPathname = '/1/53';
+       urlPathname = '/4/2';
     } else {
        urlPathname = this.props.location.pathname
     } 
@@ -72,7 +73,7 @@ export default class App extends React.Component {
 
   async initializeApp(incId, userId){
 
-    // TODO: remove random function and get incId from service
+    // TODO: remove random function and get incId from service (nfd)
     const getRandomIntInclusive = (min, max) => {
       min = Math.ceil(min);
       max = Math.floor(max);
@@ -82,7 +83,7 @@ export default class App extends React.Component {
     let randomIncId = getRandomIntInclusive(1,100)
 
     //get Current Dispatch
-    let dispatch = await axios.get(`http://localhost:8080/d/${randomIncId}/${53}`).then(res => res.data);
+    let dispatch = await axios.get(`${hostname}/d/${9}/${2}`).then(res => res.data);
     
     //set state immediately for integral dispatch data
     this.setState({
@@ -100,14 +101,14 @@ export default class App extends React.Component {
     // get Dispatch History
     // let dispatchHistoryData = await axios.get('/api/calls');
     // get stations
-    let stationData = await axios.get(`http://localhost:8080/api/stations/${dispatch.data.dept.dept_id}`).then(res => res.data);
+    let stationData = await axios.get(`${hostname}/api/stations/${dispatch.data.dept.dept_id}`).then(res => res.data);
     // get All Station Apparatus
-    let apparatusData = await axios.get(`http://localhost:8080/api/apparatus/${dispatch.data.dept.dept_id}`).then(res => res.data);
+    let apparatusData = await axios.get(`${hostname}/api/apparatus/${dispatch.data.dept.dept_id}`).then(res => res.data);
     // get All Carriers
-    let carrierData = await axios.get('http://localhost:8080/api/carriers').then(res => res.data);
+    let carrierData = await axios.get(`${hostname}/api/carriers`).then(res => res.data);
     // get User Tracking
     
-    let trackingData = await axios.get(`http://localhost:8080/api/users/track/${53}`)
+    let trackingData = await axios.get(`${hostname}/api/users/track/${2}`) //TODO: remove hardcoded user (nfd)
     .then( res => res.data )
     .catch( err => err )
     
@@ -253,20 +254,45 @@ export default class App extends React.Component {
   }
 
   async modifyStationAssignment(e) {
+    console.log('INVOKE modifyStationAssignment');
+    console.log(e.target);
+    console.log(e.target.value);
+    console.log(e.target.id);
+    
     let { userID } = this.state;
     let staID = e.target.id.split('-').pop();
-    //make change
-    console.log(userID, staID);
-    
-    await axios.patch(`/api/track_user_station/${userID}/${staID}`)
-               .catch((error) => {console.error(`ERROR in PATCH for user/station assignment: ${error}`)})
+    let bodyDetails = {
+      user_id: userID,
+      sta_id: staID
+    } 
+    // if user toggled subscription on
+    if (e.target.value === 'on') {
+      // post record tracking station
+      await axios.post(`${hostname}/api/users/track`, bodyDetails)
+      .then(resp => console.log(resp.data))
+      .catch(err => console.error(err))
+      // else remove subscription
+    } else {
+      await axios.delete(`${hostname}/api/user/track`, bodyDetails)
+      .then(resp => console.log(resp.data))
+      .catch(err => console.error(err))
+    }
+
     //fetch new results reflecting change from above patch
-    let userStationTrackingData = await axios.get(`/api/track_user_station/${userID}`)
-    let userApparatusTrackingData = await axios.get(`/api/track_user_apparatus/${userID}`)
+    let userStationTrackingData = await axios.get(`${hostname}/api/users/track/${userID}`)
+                                             .then( resp => console.log(resp.data))
+    
     //rebuild assignments for rerender
     let userStationAssignmentData = await this.buildStationAssigment(this.state.allStations, userStationTrackingData.data);
     let userApparatusAssignmentData = await this.buildApparatusAssigment(this.state.allApparatus, userApparatusTrackingData.data);
     this.toggleDBSave();
+    console.log("NEXT STATE", {
+      userApparatusTracking: userApparatusTrackingData.data,
+      userStationTracking: userStationTrackingData.data,
+      userApparatusAssignment: userApparatusAssignmentData,
+      userStationAssignment: userStationAssignmentData,
+    });
+    
     this.setState({
       userApparatusTracking: userApparatusTrackingData.data,
       userStationTracking: userStationTrackingData.data,
