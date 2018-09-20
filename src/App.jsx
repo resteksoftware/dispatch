@@ -254,10 +254,6 @@ export default class App extends React.Component {
   }
 
   async modifyStationAssignment(e) {
-    console.log('INVOKE modifyStationAssignment');
-    console.log(e.target);
-    console.log(e.target.id);
-    
     let { userID } = this.state;
     let staID = e.target.id.split('-').pop();
     let bodyDetails = {
@@ -265,30 +261,23 @@ export default class App extends React.Component {
       sta_id: staID
     } 
     let shouldTurnOn;
-    console.log('🤢 START OF LOOP this.state.userStationAssignment');
     this.state.userStationAssignment.forEach(sta => {
-      console.log('sta.id', sta.id);
-      console.log('staID', staID);
-      
       if (parseInt(sta.id) === parseInt(staID)) {
-        console.log('STA.ID and STAID ARE EQUAL, sta.active is ', sta.active);
-        
         shouldTurnOn = !sta.active
       }
     })
     // if user toggled subscription on
     if (shouldTurnOn) {
-      console.log('SUP BITCH WE GOIN ACTIVE');
-      
       // post record tracking station
       await axios.post(`${hostname}/api/users/track`, bodyDetails)
-      .then(resp => console.log(resp.data))
+      .then(resp => resp.data)
       .catch(err => console.error(err))
       // else remove subscription
+      
     } else {
-      console.log('SUP BITCH WE DEACTIVATIN');
+      
       await axios.delete(`${hostname}/api/users/track/`, {data: bodyDetails})
-      .then(resp => console.log(resp.data))
+      .then(resp => resp.data)
       .catch(err => console.error(err))
     }
 
