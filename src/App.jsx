@@ -256,7 +256,6 @@ export default class App extends React.Component {
   async modifyStationAssignment(e) {
     console.log('INVOKE modifyStationAssignment');
     console.log(e.target);
-    console.log(e.target.value);
     console.log(e.target.id);
     
     let { userID } = this.state;
@@ -265,37 +264,53 @@ export default class App extends React.Component {
       user_id: userID,
       sta_id: staID
     } 
+    let shouldTurnOn;
+    console.log('🤢 START OF LOOP this.state.userStationAssignment');
+    this.state.userStationAssignment.forEach(sta => {
+      console.log('sta.id', sta.id);
+      console.log('staID', staID);
+      
+      if (parseInt(sta.id) === parseInt(staID)) {
+        console.log('STA.ID and STAID ARE EQUAL, sta.active is ', sta.active);
+        
+        shouldTurnOn = !sta.active
+      }
+    })
     // if user toggled subscription on
-    if (e.target.value === 'on') {
+    if (shouldTurnOn) {
+      console.log('SUP BITCH WE GOIN ACTIVE');
+      
       // post record tracking station
       await axios.post(`${hostname}/api/users/track`, bodyDetails)
       .then(resp => console.log(resp.data))
       .catch(err => console.error(err))
       // else remove subscription
     } else {
-      await axios.delete(`${hostname}/api/user/track`, bodyDetails)
+      console.log('SUP BITCH WE DEACTIVATIN');
+      await axios.delete(`${hostname}/api/users/track/`, {data: bodyDetails})
       .then(resp => console.log(resp.data))
       .catch(err => console.error(err))
     }
 
     //fetch new results reflecting change from above patch
-    let userStationTrackingData = await axios.get(`${hostname}/api/users/track/${userID}`)
-                                             .then( resp => console.log(resp.data))
+    // returns {track_user_dept: Array(1), track_user_sta: Array(1), track_user_app: Array(0)}
+    let userTracks = await axios.get(`${hostname}/api/users/track/${userID}`)
+                                .then(resp => resp.data)
     
     //rebuild assignments for rerender
-    let userStationAssignmentData = await this.buildStationAssigment(this.state.allStations, userStationTrackingData.data);
-    let userApparatusAssignmentData = await this.buildApparatusAssigment(this.state.allApparatus, userApparatusTrackingData.data);
+    let userStationAssignmentData = await this.buildStationAssigment(this.state.allStations, userTracks.track_user_sta);
+    let userApparatusAssignmentData = await this.buildApparatusAssigment(this.state.allApparatus, userTracks.track_user_app);
     this.toggleDBSave();
     console.log("NEXT STATE", {
-      userApparatusTracking: userApparatusTrackingData.data,
-      userStationTracking: userStationTrackingData.data,
+      userApparatusTracking: userTracks.track_user_app,
+      userStationTracking: userTracks.track_user_sta,
       userApparatusAssignment: userApparatusAssignmentData,
       userStationAssignment: userStationAssignmentData,
     });
     
     this.setState({
-      userApparatusTracking: userApparatusTrackingData.data,
-      userStationTracking: userStationTrackingData.data,
+      userApparatusTracking: userTracks.track_user_app,
+      userStationTracking: userTracks.track_user_sta,
       userApparatusAssignment: userApparatusAssignmentData,
       userStationAssignment: userStationAssignmentData,
     })
