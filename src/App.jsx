@@ -236,19 +236,47 @@ export default class App extends React.Component {
   }
 
   async modifyApparatusAssignment(e) {
+    console.log(this.state);
+    
     let { userID } = this.state;
     let appID = e.target.id.split('-').pop();
-    //make change
-    // TODO: understand how a patch will remove the record if it exists.
-    await axios.patch(`/api/users/track/${userID}/${appID}`)
-               .catch((error) => {console.error(`ERROR in PATCH for user/apparatus assignment: ${error}`)})
-    //fetch new results reflecting change from above patch
-    let userApparatusTrackingData = await axios.get(`/api/track_user_apparatus/${userID}`)
+    let bodyDetails = {
+      user_id: userID,
+      app_id: appID
+    }
+    let shouldTurnOn;
+
+    this.state.userApparatusAssignment.forEach(app => {
+      if (parseInt(app.id) === parseInt(appID)) {
+        shouldTurnOn = !app.active
+      }
+    })
+
+    if (shouldTurnOn) {
+      console.log('POST 🤩');
+      
+      await axios.post(`${hostname}/api/users/track`, bodyDetails)
+        .then(resp => resp.data)
+        .catch(err => console.error(err))
+    } else {
+      console.log('DELETE 🤩');
+      let whatisthis = await axios.delete(`${hostname}/api/users/track/`, { data: bodyDetails })
+      .then(resp => resp.data)
+      .catch(err => console.error(err))
+
+      console.log(whatisthis);
+      
+    }
+
+    // returns {track_user_dept: Array(1), track_user_sta: Array(1), track_user_app: Array(0)}
+    let userTracks = await axios.get(`${hostname}/api/users/track/${userID}`)
+      .then(resp => resp.data)
+
     //rebuild assignments for rerender
-    let userApparatusAssignmentData = await this.buildApparatusAssigment(this.state.allApparatus, userApparatusTrackingData.data);
+    let userApparatusAssignmentData = await this.buildApparatusAssigment(this.state.allApparatus, userTracks.track_user_app);
     this.toggleDBSave();
     this.setState({
-      userApparatusTracking: userApparatusTrackingData.data,
+      userApparatusTracking: userTracks.track_user_app,
       userApparatusAssignment: userApparatusAssignmentData,
     })
   }
