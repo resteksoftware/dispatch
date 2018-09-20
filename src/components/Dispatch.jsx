@@ -9,6 +9,7 @@ import Map2D from './Map2D';
 import Map3D from './Map3D';
 import RespondOptions from './RespondOptions';
 import callTypeToColors from '../utils/callTypeColor';
+const hostname = 'http://localhost:8080' // TODO: change this to ternary for production vs dev
 
 export default class Dispatch extends React.Component {
   constructor(props) {
@@ -37,8 +38,6 @@ export default class Dispatch extends React.Component {
     this.setApparatus();
     this.setTimeAgo();
     this.parseCallCategory();
-    console.log('💥');
-    console.log(this.props); 
   }
   
   getCurrentLocation() {
@@ -120,7 +119,6 @@ export default class Dispatch extends React.Component {
   }
   
   responseToggle() {
-    console.log('clicked responseToggle');
     this.setState({ responseToggle: !this.state.responseToggle })
   }
   
@@ -148,8 +146,8 @@ export default class Dispatch extends React.Component {
         lat: position.coords.latitude,
         lng: position.coords.longitude
       })
- 
-      axios.post('http://localhost:8080/api/responses/user', responseDetails).then(res=>console.log(res.data))
+      
+      axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log(res.data))
       
     })
     

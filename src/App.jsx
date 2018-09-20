@@ -106,39 +106,17 @@ export default class App extends React.Component {
     let apparatusData = await axios.get(`${hostname}/api/apparatus/${dispatch.data.dept.dept_id}`).then(res => res.data);
     // get All Carriers
     let carrierData = await axios.get(`${hostname}/api/carriers`).then(res => res.data);
-    // get User Tracking
     
+    // get User Tracking
     let trackingData = await axios.get(`${hostname}/api/users/track/${15}`) //TODO: remove hardcoded user (nfd)
     .then( res => res.data )
     .catch( err => err )
     
-    console.log('🐸🐸🐸🐸');
-    console.log('apparatusData', apparatusData);
-    console.log('stationData', stationData);
-    
-    
-    // //get all Users
-    // let allUserData = await axios.get(`http://localhost:8080/api/users`);
     // // build collection for rendering apparatus
     let userApparatusAssignmentData = await this.buildApparatusAssigment(apparatusData, trackingData.track_user_app);
     // // build collection for rendering stations
     let userStationAssignmentData = await this.buildStationAssigment(stationData, trackingData.track_user_sta);
-
     
-    console.log({
-      dispatchHistory: [],
-      allStations: stationData,
-      allApparatus: apparatusData,
-      allCarriers: carrierData,
-      userApparatusTracking: trackingData.track_user_app,
-      userStationTracking: trackingData.track_user_sta,
-      userApparatusAssignment: userApparatusAssignmentData,
-      userStationAssignment: userStationAssignmentData,
-      users: [],
-      appInitialized: true,
-    });
-    
-
     // // set state for rest of app. all data is loaded
     this.setState({
       dispatchHistory: [],
@@ -253,19 +231,13 @@ export default class App extends React.Component {
     })
 
     if (shouldTurnOn) {
-      console.log('POST 🤩');
-      
       await axios.post(`${hostname}/api/users/track`, bodyDetails)
         .then(resp => resp.data)
         .catch(err => console.error(err))
     } else {
-      console.log('DELETE 🤩');
-      let whatisthis = await axios.delete(`${hostname}/api/users/track/`, { data: bodyDetails })
+      await axios.delete(`${hostname}/api/users/track/`, { data: bodyDetails })
       .then(resp => resp.data)
       .catch(err => console.error(err))
-
-      console.log(whatisthis);
-      
     }
 
     // returns {track_user_dept: Array(1), track_user_sta: Array(1), track_user_app: Array(0)}
@@ -318,12 +290,6 @@ export default class App extends React.Component {
     let userStationAssignmentData = await this.buildStationAssigment(this.state.allStations, userTracks.track_user_sta);
     let userApparatusAssignmentData = await this.buildApparatusAssigment(this.state.allApparatus, userTracks.track_user_app);
     this.toggleDBSave();
-    console.log("NEXT STATE", {
-      userApparatusTracking: userTracks.track_user_app,
-      userStationTracking: userTracks.track_user_sta,
-      userApparatusAssignment: userApparatusAssignmentData,
-      userStationAssignment: userStationAssignmentData,
-    });
     
     this.setState({
       userApparatusTracking: userTracks.track_user_app,
@@ -436,7 +402,7 @@ export default class App extends React.Component {
                  /> }
              />
 
-             <Route
+             {/* <Route
                exact path="/dispatch-history"
                render={ routeProps =>
                  <DispatchHistory {...routeProps}
@@ -445,7 +411,7 @@ export default class App extends React.Component {
                    modifyNotificationStatus={this.modifyNotificationStatus}
                    isAdmin={this.state.userIsAdmin}
                  /> }
-             />
+             /> */}
 
              <Route
                exact path="/users"

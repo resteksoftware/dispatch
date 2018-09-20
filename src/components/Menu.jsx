@@ -284,12 +284,12 @@ export default class Menu extends React.Component {
           <MenuTitle>Menu</MenuTitle>
           <MenuItems>
 
-              <NavLink to="/dispatch-history">
+              {/* <NavLink to="/dispatch-history">
                 <li>Dispatch History </li>
-              </NavLink>
+              </NavLink> */}
 
               <NavLink to="/user-settings">
-                <li>User Setting </li>
+                <li>Settings </li>
               </NavLink>
 
             <NotificationTitle> Notifications:</NotificationTitle>
