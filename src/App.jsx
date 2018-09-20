@@ -60,7 +60,7 @@ export default class App extends React.Component {
     var urlPathname;
 
     if (!this.props.location || this.props.location.pathname === '/') {
-       urlPathname = '/4/2';
+       urlPathname = '/3/15';
     } else {
        urlPathname = this.props.location.pathname
     } 
@@ -83,7 +83,7 @@ export default class App extends React.Component {
     let randomIncId = getRandomIntInclusive(1,100)
 
     //get Current Dispatch
-    let dispatch = await axios.get(`${hostname}/d/${9}/${2}`).then(res => res.data);
+    let dispatch = await axios.get(`${hostname}/d/${incId}/${userId}`).then(res => res.data); // TODO: remove hard coded user and incident
     
     //set state immediately for integral dispatch data
     this.setState({
@@ -108,7 +108,7 @@ export default class App extends React.Component {
     let carrierData = await axios.get(`${hostname}/api/carriers`).then(res => res.data);
     // get User Tracking
     
-    let trackingData = await axios.get(`${hostname}/api/users/track/${2}`) //TODO: remove hardcoded user (nfd)
+    let trackingData = await axios.get(`${hostname}/api/users/track/${15}`) //TODO: remove hardcoded user (nfd)
     .then( res => res.data )
     .catch( err => err )
     
@@ -273,7 +273,7 @@ export default class App extends React.Component {
       .then(resp => resp.data)
       .catch(err => console.error(err))
       // else remove subscription
-      
+
     } else {
       
       await axios.delete(`${hostname}/api/users/track/`, {data: bodyDetails})
