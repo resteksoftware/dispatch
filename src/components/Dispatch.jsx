@@ -42,9 +42,9 @@ export default class Dispatch extends React.Component {
   
   getCurrentLocation() {
     const options = {
-      timeout: 3000,
+      timeout: 60000,
       enableHighAccuracy: false,
-      maximumAge: 75000
+      maximumAge: Infinity
     }
     
     navigator.geolocation.getCurrentPosition(position => {
@@ -52,8 +52,12 @@ export default class Dispatch extends React.Component {
         userLat: position.coords.latitude,
         userLng: position.coords.longitude
       }
+      console.log('Geolocation captured on init:', userCoords);
+      
       this.setState({userCoords: userCoords})
     }, (err) => {
+      console.log(err.code);
+      
       //on geolocation fail, set coordinates to firehouse
       let userCoords = {
         userLat: 41.025392,
@@ -124,9 +128,9 @@ export default class Dispatch extends React.Component {
   
   handleResponse(isDirect) {
     const options = {
-      timeout: 3000,
+      timeout: 60000,
       enableHighAccuracy: false,
-      maximumAge: 75000
+      maximumAge: Infinity
     }    
     
     let responseDetails = {     
@@ -146,10 +150,10 @@ export default class Dispatch extends React.Component {
         lat: position.coords.latitude,
         lng: position.coords.longitude
       })
-      
+      console.log('Geolocation captured:', responseDetails);
       axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log(res.data))
       
-    })
+    }, (err) => console.log(err.code), options)
     
   }
   
