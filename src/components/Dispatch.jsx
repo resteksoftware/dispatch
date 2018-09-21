@@ -95,7 +95,7 @@ export default class Dispatch extends React.Component {
     .filter(apparatus => apparatus !== ',' && apparatus !== '' );
     
     
-    this.setState({apparatusAssignment: apparatusData})
+    this.setState({apparatusAssignment: apparatusData}, ()=>console.log(this.state))
   }
   
   async getDestinationData(dispatchData) {
@@ -323,7 +323,25 @@ export default class Dispatch extends React.Component {
     border-left: 2px solid firebrick;
     border-bottom: 2px solid firebrick;
     `;
+
+    const ResponseContainer = styled.ul`
+    padding: 0 0 30px 0;
+    margin: 0;
+    list-style: none;
+    `;
     
+    const Responder = styled.li`
+    font-size: 1.5em;
+    font-family: 'Source Code Pro', monospace;
+    letter-spacing: 5px;
+    display: flex;
+    justify-content: center;
+    
+    @media screen and (max-device-width: 480px) and (orientation: portrait){
+      font-size: 1em;
+    }
+    `;
+
     let { cross_street,
       inc_description,
       location,
@@ -364,7 +382,7 @@ export default class Dispatch extends React.Component {
           !this.state.apparatusAssignment
           ? null
           : this.state.apparatusAssignment.map((apparatus) => {
-            return <Apparatus key={apparatus.app_id}>{apparatus}</Apparatus>
+            return <Apparatus key={apparatus}>{apparatus}</Apparatus>
           })
         }
         </ApparatusContainer>
@@ -402,7 +420,18 @@ export default class Dispatch extends React.Component {
           <Map3D destinationCoords={this.state.destinationCoords}/>
         }
         </li>
+        <li>Responding: </li>
         </DispatchDetails>
+        <ResponseContainer>
+            {
+              !this.props.responseData ? 
+                null : 
+                this.props.responseData.resp_user.map((responder) => {
+                  return <Responder key={`resp-${responder.user_id}`}>{`${responder.first_name} ${responder.last_name} (${responder.rank})`}</Responder>
+                })
+
+            }
+        </ResponseContainer>
         
         </DispatchContainer>
         

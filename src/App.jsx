@@ -22,6 +22,7 @@ const UserSettings = Loadable({
 
 const GAPI_KEY = process.env.GAPI_KEY;
 const hostname = 'http://localhost:8080' // TODO: add ternary for '' to make links relative (nfd)
+const DEBUG = true;
 
 export default class App extends React.Component {
   constructor(props) {
@@ -73,21 +74,13 @@ export default class App extends React.Component {
 
   async initializeApp(incId, userId){
 
-    // TODO: remove random function and get incId from service (nfd)
-    const getRandomIntInclusive = (min, max) => {
-      min = Math.ceil(min);
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    let randomIncId = getRandomIntInclusive(1,100)
-
     //get Current Dispatch
     let dispatch = await axios.get(`${hostname}/d/${incId}/${userId}`).then(res => res.data); // TODO: remove hard coded user and incident
     
     //set state immediately for integral dispatch data
     this.setState({
       dispatchData: dispatch.data.inc,
+      responseData: dispatch.data.resp || '',
       userNotificationStatus: dispatch.data.user[0]['is_sleeping'],
       userInfo: dispatch.data.user[0],
       userIsAdmin: dispatch.data.user[0]['is_admin'],
@@ -95,7 +88,7 @@ export default class App extends React.Component {
       userID: userId,
       appInitialized: false,
       menuLoad: true,
-    })
+    }, () => {if (DEBUG) console.log(this.state)})
     
     
     // get Dispatch History
@@ -395,6 +388,7 @@ export default class App extends React.Component {
                render={ routeProps =>
                  <Dispatch {...routeProps}
                    dispatchData={this.state.dispatchData}
+                   responseData={this.state.responseData}
                    userData={this.state.userInfo}
                    notificationStatus={this.state.userNotificationStatus}
                    modifyNotificationStatus={this.modifyNotificationStatus}
