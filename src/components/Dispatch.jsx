@@ -10,6 +10,7 @@ import Map3D from './Map3D';
 import RespondOptions from './RespondOptions';
 import callTypeToColors from '../utils/callTypeColor';
 const hostname = 'http://localhost:8080' // TODO: change this to ternary for production vs dev
+const DEBUG = true
 
 export default class Dispatch extends React.Component {
   constructor(props) {
@@ -22,6 +23,11 @@ export default class Dispatch extends React.Component {
       formattedTimeout: null,
       dispatchTitle: null,
       responseToggle: false,
+      resp: {
+        isResponding: false,
+        status: 'RESPOND',
+        inc_id: this.props.dispatchData.inc_id
+      }
     };
     this.getDestinationData = this.getDestinationData.bind(this);
     this.setApparatus = this.setApparatus.bind(this);
@@ -52,12 +58,18 @@ export default class Dispatch extends React.Component {
         userLat: position.coords.latitude,
         userLng: position.coords.longitude
       }
-      console.log('Geolocation captured on init:', userCoords);
+      if (DEBUG) console.log('[SUCCESS] navigator.geolocation, captured on init:', userCoords);
       
       this.setState({userCoords: userCoords})
     }, (err) => {
-      console.log(err.code);
-      
+      //TODO: add fallback that grabs approximate location via IP mapping from RIPE db (nfd)
+      let errorCodes = {
+        0: 'unknown error',
+        1: 'permission denied',
+        2: 'position unavailable (error response from location provider)', 
+        3: 'timed out'
+      }
+      if (DEBUG) console.log(`[ERROR] navigatior.geolocation, error code ${err.code}: ${errorCodes[err.code]}`);
       //on geolocation fail, set coordinates to firehouse
       let userCoords = {
         userLat: 41.025392,
@@ -127,34 +139,42 @@ export default class Dispatch extends React.Component {
   }
   
   handleResponse(isDirect) {
-    const options = {
-      timeout: 60000,
-      enableHighAccuracy: false,
-      maximumAge: Infinity
-    }    
+
+    // TODO: discuss adding fields to responses tables for gps origin, status
+    
+    let userLocation = {
+        lat: this.state.userCoords.userLat,
+        lng: this.state.userCoords.userLng
+    }
     
     let responseDetails = {     
       inc_id: this.props.dispatchData.inc_id,
       user_id: this.props.userData.user_id,
       respond_direct: isDirect,
-      init_resp_gps: null,
+      init_resp_gps: JSON.stringify(userLocation),
       init_resp_timestamp: Date.now(),
       onscene_resp_timestamp: null,
       onscene_resp_gps: null,
       closing_resp_timestamp: null,
       closing_resp_gps: null
     }
-    
-    navigator.geolocation.getCurrentPosition(position => {
-      responseDetails.init_resp_gps = JSON.stringify({
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      })
-      console.log('Geolocation captured:', responseDetails);
+    if (isDirect) {
       axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log(res.data))
-      
-    }, (err) => console.log(err.code), options)
-    
+    } else {
+      // TODO: modify initial query for user data to get default_station coordinates 
+      // then use coordinates to calculate distance for response status (nfd)
+      // for reference Station 4's gps is: 41.038147, -73.665000
+      axios.post(`${hostname}/api/responses/user`)
+    }
+
+    this.setState({
+      resp: {
+        isResponding: true,
+        status:`YOU ARE RESPONDING`, // TODO: make this dynamic if user is responding to another call (nfd)
+        inc_id: this.props.dispatchData.inc_id
+      }
+    }, () => console.log(this.state))
+
   }
   
   render() {
@@ -325,11 +345,13 @@ export default class Dispatch extends React.Component {
         </Title>
         
         {
-          this.props.userData.is_volley 
-          ? (this.state.responseToggle
-            ? <ResponseSelect onClick={this.responseToggle}>
-            <RespondOptions handleResponse={this.handleResponse} />
-            </ResponseSelect>
+          this.props.userData.is_volley ?
+            (this.state.responseToggle ?
+              <ResponseSelect onClick={this.responseToggle}>
+                <RespondOptions 
+                  handleResponse={this.handleResponse} 
+                  resp={this.state.resp}/>
+              </ResponseSelect>
             : <ResponseThumb onClick={this.responseToggle}></ResponseThumb>)
           : null  
         }

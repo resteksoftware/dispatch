@@ -16,7 +16,7 @@ const ResponseTitle = styled.div`
 grid-area: resptitle;
 display: flex;
 justify-content: center;
-font-size: 2em;
+font-size: 1.5em;
 font-family: 'Podkova';
 `;
 
@@ -76,7 +76,7 @@ const RespondOptions = (props) => {
   return (
     <ResponseContainer>
       <ResponseContent>
-        <ResponseTitle>RESPOND</ResponseTitle>
+        <ResponseTitle>{props.resp.status}</ResponseTitle>
         <ResponseSubtitle>Select an option to respond to this call</ResponseSubtitle>
         <RespondDirect onClick={()=> props.handleResponse(true)}>
           Direct to Scene
