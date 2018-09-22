@@ -63,7 +63,7 @@ export default class App extends React.Component {
     var urlPathname;
 
     if (!this.props.location || this.props.location.pathname === '/') {
-       urlPathname = '/3/15';
+       urlPathname = '/6/2';
     } else {
        urlPathname = this.props.location.pathname
     } 
@@ -388,12 +388,10 @@ export default class App extends React.Component {
                 <Dispatch {...routeProps}
                 dispatchData={this.state.dispatchData}
                 responseData={this.state.responseData}
-                refreshDispatch={this.refreshDispatch}
                 userData={this.state.userInfo}
                 notificationStatus={this.state.userNotificationStatus}
                 modifyNotificationStatus={this.modifyNotificationStatus}
                 isAdmin={this.state.userIsAdmin}
-                updateResponders={this.updateResponders}
                  /> }
              />
 

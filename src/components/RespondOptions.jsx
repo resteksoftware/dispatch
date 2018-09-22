@@ -117,7 +117,7 @@ const ResponseButton = (props) => {
         </RespondStation>
       </div>)
   } else if (props.respStatus === 'YOU ARE RESPONDING') {
-    return <CancelResponse onClick={() => props.handleResponse(props.isDirect)}>
+    return <CancelResponse onClick={() => props.handleResponse('cancel')}>
               Stop Responding
             </CancelResponse>
   }
@@ -128,10 +128,10 @@ const RespondOptions = (props) => {
   return (
     <ResponseContainer>
       <ResponseContent>
-        <ResponseTitle>{props.resp.status}</ResponseTitle>
+        <ResponseTitle>{props.responseStatus}</ResponseTitle>
         <ResponseSubtitle>Select an option to respond to this call</ResponseSubtitle>
         <ResponseButton 
-          respStatus={props.resp.status} 
+          respStatus={props.responseStatus} 
           handleResponse={props.handleResponse} 
           isDirect={true}/>
       </ResponseContent>

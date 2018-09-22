@@ -18,17 +18,14 @@ export default class Dispatch extends React.Component {
     this.state = {
       destinationCoords: null,
       userCoords: null,
+      userData: null,
       apparatusAssignment: null,
       timeAgo: null,
       formattedTimeout: null,
       dispatchTitle: null,
       responseToggle: false,
       responseData: null,
-      resp: {
-        status: 'RESPOND',
-        inc_id: '',
-        isResponding: false
-      }
+      responseStatus: ''
     };
     this.getDestinationData = this.getDestinationData.bind(this);
     this.setApparatus = this.setApparatus.bind(this);
@@ -38,12 +35,17 @@ export default class Dispatch extends React.Component {
     this.responseToggle = this.responseToggle.bind(this);
     this.handleResponse = this.handleResponse.bind(this);
     this.setResponseStatus = this.setResponseStatus.bind(this);
+    this.handleEndResponse = this.handleEndResponse.bind(this);
+    this.setUserData = this.setUserData.bind(this);
+    this.setResponseData = this.setResponseData.bind(this);
   }
   
   componentDidMount() {
     this.getDestinationData(this.props.dispatchData);
     this.getCurrentLocation();
     this.setApparatus();
+    this.setUserData();
+    this.setResponseData();
     this.setTimeAgo();
     this.parseCallCategory();
     this.setResponseStatus();
@@ -81,6 +83,16 @@ export default class Dispatch extends React.Component {
       this.setState({userCoords: userCoords})
     }, options );
   }
+
+  setUserData() {
+    let userData = Object.assign({}, this.props.userData)
+    this.setState({ userData: userData })
+  }
+
+  setResponseData() {
+    let responseData = Object.assign({}, this.props.responseData)
+    this.setState({ responseData: responseData })
+  }
   
   parseCallCategory() {
     let dispatchTitle = this.props.dispatchData.inc_category
@@ -92,7 +104,8 @@ export default class Dispatch extends React.Component {
   setApparatus() {
     
     //incoming props seems unpredictable with , and ' '
-    let apparatusData = this.props.dispatchData.assignments[0].assignment
+    let assignments = this.props.dispatchData.assignments
+    let apparatusData = assignments[assignments.length - 1].assignment
     .replace(/\s/g, ',') //replace spaces with commas
     .split(',')
     .filter(apparatus => apparatus !== ',' && apparatus !== '' );
@@ -140,11 +153,60 @@ export default class Dispatch extends React.Component {
   responseToggle() {
     this.setState({ responseToggle: !this.state.responseToggle })
   }
+
+  /**
+   * 
+   * @param {number} incId (incident_id) passed in from different incident user is responding to
+   * this function is called when a user is ending a response, either from this
+   * incident or from another incident
+   */
+  async handleEndResponse(incId) {
   
+    incId = incId || this.state.dispatchData.inc_id
+
+    let responders;
+    // TODO: meditate adding fields to responses tables for gps origin, status (nfd)
+
+    let userLocation = {
+      lat: this.state.userCoords.userLat,
+      lng: this.state.userCoords.userLng
+    }
+
+    let responseDetails = {
+      inc_id: this.props.dispatchData.inc_id,
+      user_id: this.props.userData.user_id,
+      respond_direct: isDirect,
+      init_resp_gps: JSON.stringify(userLocation),
+      init_resp_timestamp: Date.now(),
+      onscene_resp_timestamp: null,
+      onscene_resp_gps: null,
+      closing_resp_timestamp: null,
+      closing_resp_gps: null
+    }
+    // if (isDirect === 'cancel') {
+    //   this.state.responseData.resp_user.forEach( async (responder) => {
+    //     if (responder.user_id === this.props.userData.user_id) {
+    //       await axios.delete(`${hostname}/api/responses/user/${responder.resp_user_id}`)
+    //       resp = {
+    //         isResponding: false,
+    //         status: 'RESPOND',
+    //         inc_id: this.props.dispatchData.inc_id
+    //       }
+    //     }
+    //   })
+    // } else
+
+  }
+  
+  /**
+   * 
+   * @param {boolean} isDirect (if user is responding direct or from station)
+   * this function is called when a user is responding to incident
+   */
+
   async handleResponse(isDirect) {
     let responders;
-    let resp;
-    // TODO: discuss adding fields to responses tables for gps origin, status
+    // TODO: meditate adding fields to responses tables for gps origin, status (nfd)
     
     let userLocation = {
         lat: this.state.userCoords.userLat,
@@ -162,77 +224,42 @@ export default class Dispatch extends React.Component {
       closing_resp_timestamp: null,
       closing_resp_gps: null
     }
-    if (isDirect === 'cancel') {
-      this.state.responseData.resp_user.forEach( async (responder) => {
-        if (responder.user_id === this.props.userData.user_id) {
-          await axios.delete(`${hostname}/api/responses/user/${responder.resp_user_id}`)
-          resp = {
-            isResponding: false,
-            status: 'RESPOND',
-            inc_id: this.props.dispatchData.inc_id
-          }
-        }
-      })
-    } else if (isDirect === true) {
+
+     if (isDirect === true) {
       await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log('Success handling response',res.data))
-      resp = {
-        isResponding: true,
-        status: 'YOU ARE RESPONDING',
-        inc_id: this.props.dispatchData.inc_id
-      } 
-    } else {
+    } else { // user is responding from their default station
       // TODO: modify initial query for user data to get default_station coordinates 
       // then use coordinates to calculate distance for response status (nfd)
       // for reference Station 4's gps is: 41.038147, -73.665000
       responseDetails.init_resp_gps = '{lat: 41.038147, lng: -73.665000}'
       await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res => console.log('Success handling response', res.data))
-      resp = {
-        isResponding: true,
-        status: 'YOU ARE RESPONDING',
-        inc_id: this.props.dispatchData.inc_id
-      } 
     }
-
     // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
     responders = await axios.get(`${hostname}/api/responses/inc-id/${responseDetails.inc_id}`).then(resp => resp.data)
+    console.log('GETTING RESPONDERS FROM INCIDENT ID 💀 💀 💀 💀 💀 💀 💀 💀 💀 💀');
+    console.log(responders);
     
+
+    this.setState({responseData: responders})
     // TODO: make resp.status dynamic if user is responding to another call (nfd)
-
-    
-    this.setResponseStatus(responders, resp)
-
-    console.log('hi?');
-    
+    this.setResponseStatus()
     return
   }
 
-  setResponseStatus(responders, resp) {
-    let responseData = !this.state.responseData ? this.props.responseData : responders
-    console.log('props in dispatch');
-    console.log(this.props);
-
-    responseData.resp_user.forEach(user => {
-
-      if (user.user_id === this.props.userData.user_id) {
-        resp = {
-            isResponding: true,
-            status: 'YOU ARE RESPONDING',
-              inc_id: 2
-          } 
-        }
+  setResponseStatus() {
+    let userResp = this.state.userData ? this.state.userData.responses : this.props.userData.responses
+    let responseStatus = 'RESPOND' // default is for user to respond
+    console.log('USER RESP', userResp);
+    // TODO: ensure we are chronologically sorting through this collection (nfd)
+    userResp.forEach(resp => {
+      console.log('resp');
+      console.log(resp);
+      // check if response is open
+      // check if current inc_id matches user_resp
     })
 
-    if (resp) {
-      console.log('INSIDE RESP 👉 👉 👉 👉');
-      
-      this.setState({
-        responseData: responseData,
-        resp: resp
-      })
-    } else {
-      this.setState({responseData: responseData})
-    }
-
+    this.setState({ responseStatus: responseStatus})
+    
   }
 
   componentWillUnmount(){
@@ -243,6 +270,8 @@ export default class Dispatch extends React.Component {
   
   render() {
     console.log('[RERENDER] 🏄‍ DISPATCH');
+    console.log(this.state);
+    
     
     
     const alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
@@ -417,7 +446,7 @@ export default class Dispatch extends React.Component {
       radio_freq,
       remarks } = this.props.dispatchData;
       
-      
+    let currentRemark = remarks[remarks.length - 1].remark
       
       return (
         
@@ -429,12 +458,12 @@ export default class Dispatch extends React.Component {
         </Title>
         
         {
-          this.props.userData.is_volley ?
+          this.props.userData.is_volley && this.state.responseStatus !== '' ?
             (this.state.responseToggle ?
               <ResponseSelect onClick={this.responseToggle}>
                 <RespondOptions 
                   handleResponse={this.handleResponse} 
-                  resp={this.state.resp}/>
+                  responseStatus={this.state.responseStatus}/>
               </ResponseSelect>
             : <ResponseThumb onClick={this.responseToggle}></ResponseThumb>)
           : null  
@@ -453,7 +482,7 @@ export default class Dispatch extends React.Component {
         }
         </ApparatusContainer>
         <li>Description:</li>
-        <li>{remarks[0].remark}</li>
+        <li>{currentRemark}</li>
         <li>Address:</li>
         <li>{location + ", " + city}<br />
         { location === premise_name
