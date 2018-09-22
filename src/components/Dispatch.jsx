@@ -23,10 +23,11 @@ export default class Dispatch extends React.Component {
       formattedTimeout: null,
       dispatchTitle: null,
       responseToggle: false,
+      responseData: null,
       resp: {
-        isResponding: false,
         status: 'RESPOND',
-        inc_id: this.props.dispatchData.inc_id
+        inc_id: '',
+        isResponding: false
       }
     };
     this.getDestinationData = this.getDestinationData.bind(this);
@@ -36,6 +37,7 @@ export default class Dispatch extends React.Component {
     this.parseCallCategory = this.parseCallCategory.bind(this);
     this.responseToggle = this.responseToggle.bind(this);
     this.handleResponse = this.handleResponse.bind(this);
+    this.setResponseStatus = this.setResponseStatus.bind(this);
   }
   
   componentDidMount() {
@@ -44,6 +46,7 @@ export default class Dispatch extends React.Component {
     this.setApparatus();
     this.setTimeAgo();
     this.parseCallCategory();
+    this.setResponseStatus();
   }
   
   getCurrentLocation() {
@@ -167,21 +170,63 @@ export default class Dispatch extends React.Component {
       responseDetails.init_resp_gps = '{lat: 41.038147, lng: -73.665000}'
       await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res => console.log('Success handling response', res.data))
     }
+
+    // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
     responders = await axios.get(`${hostname}/api/responses/inc-id/${responseDetails.inc_id}`).then(resp => resp.data)
-    // modify responders
-    console.log(responders);
-    this.props.updateResponders(responders)
-    this.setState({
-      resp: {
-        isResponding: true,
-        status:`YOU ARE RESPONDING`, // TODO: make this dynamic if user is responding to another call (nfd)
-        inc_id: this.props.dispatchData.inc_id
-      }
-    }, () => console.log(this.state))
+    
+    // TODO: make resp.status dynamic if user is responding to another call (nfd)
+
+    let resp = {
+      isResponding: true,
+      status: 'YOU ARE RESPONDING',
+      inc_id: 2
+    } 
+    
+    this.setResponseStatus(responders, resp)
+
+    console.log('hi?');
+    
+    return
+  }
+
+  setResponseStatus(responders, resp) {
+    let responseData = !this.state.responseData ? this.props.responseData : responders
+    console.log('props in dispatch');
+    console.log(this.props);
+
+    responseData.resp_user.forEach(user => {
+
+      if (user.user_id === this.props.userData.user_id) {
+        resp = {
+            isResponding: true,
+            status: 'YOU ARE RESPONDING',
+              inc_id: 2
+          } 
+        }
+    })
+
+    if (resp) {
+      console.log('INSIDE RESP 👉 👉 👉 👉');
+      
+      this.setState({
+        responseData: responseData,
+        resp: resp
+      })
+    } else {
+      this.setState({responseData: responseData})
+    }
 
   }
+
+  componentWillUnmount(){
+    console.log('COMPONENT WILL UNMOUNT')
+  }
+
+ 
   
   render() {
+    console.log('[RERENDER] 🏄‍ DISPATCH');
+    
     
     const alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
     
@@ -428,12 +473,11 @@ export default class Dispatch extends React.Component {
         </DispatchDetails>
         <ResponseContainer>
             {
-              !this.props.responseData ? 
+              !this.state.responseData ? 
                 null : 
-                this.props.responseData.resp_user.map((responder) => {
+                this.state.responseData.resp_user.map((responder) => {
                   return <Responder key={`resp-${responder.user_id}`}>{`${responder.first_name} ${responder.last_name} (${responder.rank})`}</Responder>
                 })
-
             }
         </ResponseContainer>
         

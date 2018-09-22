@@ -45,9 +45,10 @@ export default class App extends React.Component {
       userIsAdmin: false,
       userID: null,
       users: [],
+      refreshDispatch: 0,
       responseData: null,
       slug: null,
-      toggleDBSave: false,
+      toggleDBSave: false
     };
 
     this.modifyNotificationStatus = this.modifyNotificationStatus.bind(this);
@@ -56,7 +57,6 @@ export default class App extends React.Component {
     this.buildApparatusAssigment = this.buildApparatusAssigment.bind(this);
     this.buildStationAssigment = this.buildStationAssigment.bind(this);
     this.initializeApp = this.initializeApp.bind(this);
-    this.updateResponders = this.updateResponders.bind(this);
   }
 
   componentDidMount() {
@@ -90,7 +90,7 @@ export default class App extends React.Component {
       userID: userId,
       appInitialized: false,
       menuLoad: true,
-    }, () => {if (DEBUG) console.log(this.state)})
+    }, () => {if (DEBUG) console.log('initial payload: ', this.state)})
     
     
     // get Dispatch History
@@ -266,21 +266,17 @@ export default class App extends React.Component {
       await axios.post(`${hostname}/api/users/track`, bodyDetails)
       .then(resp => resp.data)
       .catch(err => console.error(err))
-      // else remove subscription
-
-    } else {
-      
+    } else { // else remove subscription
       await axios.delete(`${hostname}/api/users/track/`, {data: bodyDetails})
       .then(resp => resp.data)
       .catch(err => console.error(err))
     }
 
-    //fetch new results reflecting change from above patch
+    // fetch new results reflecting change from above patch
     // returns {track_user_dept: Array(1), track_user_sta: Array(1), track_user_app: Array(0)}
     let userTracks = await axios.get(`${hostname}/api/users/track/${userID}`)
                                 .then(resp => resp.data)
-    
-    //rebuild assignments for rerender
+    // rebuild assignments for rerender
     let userStationAssignmentData = await this.buildStationAssigment(this.state.allStations, userTracks.track_user_sta);
     let userApparatusAssignmentData = await this.buildApparatusAssigment(this.state.allApparatus, userTracks.track_user_app);
     this.toggleDBSave();
@@ -290,12 +286,6 @@ export default class App extends React.Component {
       userStationTracking: userTracks.track_user_sta,
       userApparatusAssignment: userApparatusAssignmentData,
       userStationAssignment: userStationAssignmentData,
-    })
-  }
-
-  updateResponders(responders) {
-    this.setState({
-      responseData: responders
     })
   }
 
@@ -321,6 +311,8 @@ export default class App extends React.Component {
   }
 
   render() {
+    console.log('[RERENDER] 🍍 APP');
+
 
     const AppContainer = styled.div`
         display: grid;
@@ -396,6 +388,7 @@ export default class App extends React.Component {
                 <Dispatch {...routeProps}
                 dispatchData={this.state.dispatchData}
                 responseData={this.state.responseData}
+                refreshDispatch={this.refreshDispatch}
                 userData={this.state.userInfo}
                 notificationStatus={this.state.userNotificationStatus}
                 modifyNotificationStatus={this.modifyNotificationStatus}

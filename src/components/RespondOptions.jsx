@@ -72,22 +72,44 @@ padding: 5px;
   font-style: italic;
 }
 `;
+
+
+const ResponseButton = (props) => {
+  console.log("INSIDE RESPONSE BUTTON");
+  console.log(props);
+  console.log(props.respStatus);
+  
+  
+  if (props.respStatus === 'RESPOND') {
+    return (
+    <div>  
+      <RespondDirect onClick={() => props.handleResponse(props.isDirect)}>
+        Direct to Scene
+              <br />
+        <div>(10 mins to scene)</div>
+      </RespondDirect>
+        <RespondStation>
+          To Station First
+              <br />
+          <div>(50 mins to scene)</div>
+        </RespondStation>
+      </div>)
+  } else if (props.respStatus === 'YOU ARE RESPONDING') {
+    return <div> shitman </div>
+  }
+  
+}
+
 const RespondOptions = (props) => {
   return (
     <ResponseContainer>
       <ResponseContent>
         <ResponseTitle>{props.resp.status}</ResponseTitle>
         <ResponseSubtitle>Select an option to respond to this call</ResponseSubtitle>
-        <RespondDirect onClick={()=> props.handleResponse(true)}>
-          Direct to Scene
-            <br/>
-          <div>(10 mins to scene)</div>
-        </RespondDirect>
-        <RespondStation>
-          To Station First
-            <br/>
-          <div>(50 mins to scene)</div>
-        </RespondStation>
+        <ResponseButton 
+          respStatus={props.resp.status} 
+          handleResponse={props.handleResponse} 
+          isDirect={true}/>
       </ResponseContent>
     </ResponseContainer>
   )
