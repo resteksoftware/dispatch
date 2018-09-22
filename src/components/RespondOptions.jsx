@@ -73,6 +73,28 @@ padding: 5px;
 }
 `;
 
+const CancelResponse = styled.div`
+grid-area: respdirect;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+border: 2px solid firebrick;
+border-radius: 10px;
+margin: 5%;
+font-family: 'Source Code Pro';
+font-size: 1em;
+text-align: center;
+padding: 5px;
+> div{
+  font-family: 'Anonymous Pro';
+  font-size: .8em;
+  padding: 5px 0 5px 0;
+  color: grey;
+  font-style: italic;
+}
+`;
+
 
 const ResponseButton = (props) => {
   console.log("INSIDE RESPONSE BUTTON");
@@ -95,7 +117,9 @@ const ResponseButton = (props) => {
         </RespondStation>
       </div>)
   } else if (props.respStatus === 'YOU ARE RESPONDING') {
-    return <div> shitman </div>
+    return <CancelResponse onClick={() => props.handleResponse(props.isDirect)}>
+              Stop Responding
+            </CancelResponse>
   }
   
 }

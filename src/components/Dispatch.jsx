@@ -143,6 +143,7 @@ export default class Dispatch extends React.Component {
   
   async handleResponse(isDirect) {
     let responders;
+    let resp;
     // TODO: discuss adding fields to responses tables for gps origin, status
     
     let userLocation = {
@@ -161,14 +162,35 @@ export default class Dispatch extends React.Component {
       closing_resp_timestamp: null,
       closing_resp_gps: null
     }
-    if (isDirect) {
+    if (isDirect === 'cancel') {
+      this.state.responseData.resp_user.forEach( async (responder) => {
+        if (responder.user_id === this.props.userData.user_id) {
+          await axios.delete(`${hostname}/api/responses/user/${responder.resp_user_id}`)
+          resp = {
+            isResponding: false,
+            status: 'RESPOND',
+            inc_id: this.props.dispatchData.inc_id
+          }
+        }
+      })
+    } else if (isDirect === true) {
       await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log('Success handling response',res.data))
+      resp = {
+        isResponding: true,
+        status: 'YOU ARE RESPONDING',
+        inc_id: this.props.dispatchData.inc_id
+      } 
     } else {
       // TODO: modify initial query for user data to get default_station coordinates 
       // then use coordinates to calculate distance for response status (nfd)
       // for reference Station 4's gps is: 41.038147, -73.665000
       responseDetails.init_resp_gps = '{lat: 41.038147, lng: -73.665000}'
       await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res => console.log('Success handling response', res.data))
+      resp = {
+        isResponding: true,
+        status: 'YOU ARE RESPONDING',
+        inc_id: this.props.dispatchData.inc_id
+      } 
     }
 
     // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
@@ -176,11 +198,6 @@ export default class Dispatch extends React.Component {
     
     // TODO: make resp.status dynamic if user is responding to another call (nfd)
 
-    let resp = {
-      isResponding: true,
-      status: 'YOU ARE RESPONDING',
-      inc_id: 2
-    } 
     
     this.setResponseStatus(responders, resp)
 

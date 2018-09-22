@@ -83,9 +83,9 @@ export default class App extends React.Component {
     this.setState({
       dispatchData: dispatch.data.inc,
       responseData: dispatch.data.resp || '',
-      userNotificationStatus: dispatch.data.user[0]['is_sleeping'],
-      userInfo: dispatch.data.user[0],
-      userIsAdmin: dispatch.data.user[0]['is_admin'],
+      userNotificationStatus: dispatch.data.user['is_sleeping'],
+      userInfo: dispatch.data.user,
+      userIsAdmin: dispatch.data.user['is_admin'],
       slug: dispatch.data.inc['inc_id'],
       userID: userId,
       appInitialized: false,
@@ -301,14 +301,14 @@ export default class App extends React.Component {
 
   }
 
-  shouldComponentUpdate(nextProps, nextState){
-    if (this.state.appInitialized === false) {
-      return false;
-    } else {
-      return true;
-    }
+  // shouldComponentUpdate(nextProps, nextState){
+  //   if (this.state.appInitialized === false) {
+  //     return false;
+  //   } else {
+  //     return true;
+  //   }
 
-  }
+  // }
 
   render() {
     console.log('[RERENDER] 🍍 APP');
