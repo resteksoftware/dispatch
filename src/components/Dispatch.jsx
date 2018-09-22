@@ -1,5 +1,5 @@
-import React from 'react';
 import { Route, NavLink } from 'react-router-dom';
+import React from 'react';
 import axios from 'axios';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 import format from 'date-fns/format';
@@ -138,8 +138,8 @@ export default class Dispatch extends React.Component {
     this.setState({ responseToggle: !this.state.responseToggle })
   }
   
-  handleResponse(isDirect) {
-
+  async handleResponse(isDirect) {
+    let responders;
     // TODO: discuss adding fields to responses tables for gps origin, status
     
     let userLocation = {
@@ -159,14 +159,18 @@ export default class Dispatch extends React.Component {
       closing_resp_gps: null
     }
     if (isDirect) {
-      axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log(res.data))
+      await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log('Success handling response',res.data))
     } else {
       // TODO: modify initial query for user data to get default_station coordinates 
       // then use coordinates to calculate distance for response status (nfd)
       // for reference Station 4's gps is: 41.038147, -73.665000
-      axios.post(`${hostname}/api/responses/user`)
+      responseDetails.init_resp_gps = '{lat: 41.038147, lng: -73.665000}'
+      await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res => console.log('Success handling response', res.data))
     }
-
+    responders = await axios.get(`${hostname}/api/responses/inc-id/${responseDetails.inc_id}`).then(resp => resp.data)
+    // modify responders
+    console.log(responders);
+    this.props.updateResponders(responders)
     this.setState({
       resp: {
         isResponding: true,

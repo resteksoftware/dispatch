@@ -45,6 +45,7 @@ export default class App extends React.Component {
       userIsAdmin: false,
       userID: null,
       users: [],
+      responseData: null,
       slug: null,
       toggleDBSave: false,
     };
@@ -55,6 +56,7 @@ export default class App extends React.Component {
     this.buildApparatusAssigment = this.buildApparatusAssigment.bind(this);
     this.buildStationAssigment = this.buildStationAssigment.bind(this);
     this.initializeApp = this.initializeApp.bind(this);
+    this.updateResponders = this.updateResponders.bind(this);
   }
 
   componentDidMount() {
@@ -207,7 +209,6 @@ export default class App extends React.Component {
   }
 
   async modifyApparatusAssignment(e) {
-    console.log(this.state);
     
     let { userID } = this.state;
     let appID = e.target.id.split('-').pop();
@@ -289,6 +290,12 @@ export default class App extends React.Component {
       userStationTracking: userTracks.track_user_sta,
       userApparatusAssignment: userApparatusAssignmentData,
       userStationAssignment: userStationAssignmentData,
+    })
+  }
+
+  updateResponders(responders) {
+    this.setState({
+      responseData: responders
     })
   }
 
@@ -378,7 +385,7 @@ export default class App extends React.Component {
             mns={this.modifyNotificationStatus}
             isAdmin={true}//this.state.userIsAdmin
             menuLoad={this.state.menuLoad}
-          />
+            />
 
           <AppContent>
 
@@ -386,13 +393,14 @@ export default class App extends React.Component {
              <Route
                exact path="/"
                render={ routeProps =>
-                 <Dispatch {...routeProps}
-                   dispatchData={this.state.dispatchData}
-                   responseData={this.state.responseData}
-                   userData={this.state.userInfo}
-                   notificationStatus={this.state.userNotificationStatus}
-                   modifyNotificationStatus={this.modifyNotificationStatus}
-                   isAdmin={this.state.userIsAdmin}
+                <Dispatch {...routeProps}
+                dispatchData={this.state.dispatchData}
+                responseData={this.state.responseData}
+                userData={this.state.userInfo}
+                notificationStatus={this.state.userNotificationStatus}
+                modifyNotificationStatus={this.modifyNotificationStatus}
+                isAdmin={this.state.userIsAdmin}
+                updateResponders={this.updateResponders}
                  /> }
              />
 
