@@ -84,12 +84,12 @@ export default class Dispatch extends React.Component {
       this.setState({userCoords: userCoords})
     }, options );
   }
-
+  
   setUserData() {
     let userData = Object.assign({}, this.props.userData)
     this.setState({ userData: userData })
   }
-
+  
   setResponseData() {
     let responseData = Object.assign({}, this.props.responseData)
     responseData.resp_user = responseData.resp_user.filter(responder => responder.closing_resp_timestamp === null)
@@ -157,34 +157,34 @@ export default class Dispatch extends React.Component {
   responseToggle() {
     this.setState({ responseToggle: !this.state.responseToggle })
   }
-
-  /**
-   * 
-   * @param {number} incId (incident_id) passed in from different incident user is responding to
-   * this function is called when a user is ending a response, either from this
-   * incident or from another incident
-   */
-  async handleEndResponse() {
   
+  /**
+  * 
+  * @param {number} incId (incident_id) passed in from different incident user is responding to
+  * this function is called when a user is ending a response, either from this
+  * incident or from another incident
+  */
+  async handleEndResponse() {
+    
     let responders;
     let updatedUserData;
     // TODO: meditate adding fields to responses tables for gps origin, status (nfd)
-
+    
     let userLocation = `{lat:${this.state.userCoords.userLat},lng:${this.state.userCoords.userLng}}`
-
+    
     let responseDetails = {
       closing_resp_timestamp: Date.now(),
       closing_resp_gps: userLocation
     }
     
     await axios.patch(`${hostname}/api/responses/user/${this.state.respUserId}`, responseDetails)
-
+    
     // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
     responders = await axios.get(`${hostname}/api/responses/inc-id/${this.props.dispatchData.inc_id}`)
-                            .then(responseData => {
-                              responseData.data.resp_user = responseData.data.resp_user.filter(resp => resp.closing_resp_timestamp === null)
-                              return responseData.data
-                            })
+    .then(responseData => {
+      responseData.data.resp_user = responseData.data.resp_user.filter(resp => resp.closing_resp_timestamp === null)
+      return responseData.data
+    })
     updatedUserData = await axios.get(`${hostname}/api/users/user-id/${this.state.userData.user_id}`).then(resp => resp.data)
     this.setState({
       responseData: responders,
@@ -192,23 +192,23 @@ export default class Dispatch extends React.Component {
     })
     this.setResponseStatus()
     return
-
+    
   }
   
   /**
-   * 
-   * @param {boolean} isDirect (if user is responding direct or from station)
-   * this function is called when a user is responding to incident
-   */
-
+  * 
+  * @param {boolean} isDirect (if user is responding direct or from station)
+  * this function is called when a user is responding to incident
+  */
+  
   async handleResponse(isDirect) {
     let responders;
     let updatedUserData;
     // TODO: meditate adding fields to responses tables for gps origin, status (nfd)
     
     let userLocation = {
-        lat: this.state.userCoords.userLat,
-        lng: this.state.userCoords.userLng
+      lat: this.state.userCoords.userLat,
+      lng: this.state.userCoords.userLng
     }
     
     let responseDetails = {     
@@ -222,8 +222,8 @@ export default class Dispatch extends React.Component {
       closing_resp_timestamp: null,
       closing_resp_gps: null
     }
-
-     if (isDirect === true) {
+    
+    if (isDirect === true) {
       await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log('Success handling response',res.data))
     } else { // user is responding from their default station
       // TODO: modify initial query for user data to get default_station coordinates 
@@ -242,7 +242,7 @@ export default class Dispatch extends React.Component {
     this.setResponseStatus()
     return
   }
-
+  
   setResponseStatus() {
     let userResp = this.state.userData ? this.state.userData.responses : this.props.userData.responses
     // default is for user to respond
@@ -277,7 +277,7 @@ export default class Dispatch extends React.Component {
             respUserId = resp.resp_user_id
           }
         }
-
+        
         if (responseStatus === '') {
           if (DEBUG) console.log('had some responses but all of them closed');
           // user had some responses in collection
@@ -438,7 +438,7 @@ export default class Dispatch extends React.Component {
     border-left: 2px solid firebrick;
     border-bottom: 2px solid firebrick;
     `;
-
+    
     const ResponseContainer = styled.ul`
     padding: 0 0 30px 0;
     margin: 0;
@@ -456,7 +456,12 @@ export default class Dispatch extends React.Component {
       font-size: 1em;
     }
     `;
-
+    
+    const RadioContainer = styled.li`
+    display: flex;
+    justify-content:center;
+    `;
+    
     let { cross_street,
       inc_description,
       location,
@@ -466,7 +471,7 @@ export default class Dispatch extends React.Component {
       radio_freq,
       remarks } = this.props.dispatchData;
       
-    let currentRemark = remarks[remarks.length - 1].remark
+      let currentRemark = remarks[remarks.length - 1].remark
       
       return (
         
@@ -479,81 +484,91 @@ export default class Dispatch extends React.Component {
         
         {
           this.props.userData.is_volley && this.state.responseStatus !== '' ?
-            (this.state.responseToggle ?
-              <ResponseSelect onClick={this.responseToggle}>
-                <RespondOptions 
-                  handleResponse={this.handleResponse} 
-                  handleEndResponse={this.handleEndResponse}
-                  responseStatus={this.state.responseStatus}/>
-                  incId={this.props.dispatchData.inc_id}
-
-              </ResponseSelect>
+          (this.state.responseToggle ?
+            <ResponseSelect onClick={this.responseToggle}>
+            <RespondOptions 
+            handleResponse={this.handleResponse} 
+            handleEndResponse={this.handleEndResponse}
+            responseStatus={this.state.responseStatus}/>
+            incId={this.props.dispatchData.inc_id}
+            
+            </ResponseSelect>
             : <ResponseThumb onClick={this.responseToggle}></ResponseThumb>)
-          : null  
+            : null  
+          }
+          
+          <DispatchDetails>
+          <li>Apparatus Assigned: </li>
+          <ApparatusContainer>
+          
+          {
+            !this.state.apparatusAssignment
+            ? null
+            : this.state.apparatusAssignment.map((apparatus) => {
+              return <Apparatus key={apparatus}>{apparatus}</Apparatus>
+            })
+          }
+          </ApparatusContainer>
+          <li>Description:</li>
+          <li>{currentRemark}</li>
+          <li>Address:</li>
+          <li>{location + ", " + city}<br />
+          { location === premise_name
+            ? ''
+            : premise_name
+          }
+          </li>
+          <li>Nearest Cross Streets:</li>
+          <li>{ cross_street.replace(/\&/g, ' & ') }</li>
+          <li>Radio Channel & Map Reference:</li>
+          <li>{ radio_freq } &nbsp; { map_ref }</li>
+          <li>Live Radio:</li>
+          <RadioContainer>
+          <audio controls={true}>
+          <source src={"http://35.199.41.42:8000/gfd.ogg"} type={"audio/mp3"}/>
+          <source src={"http://35.199.41.42:8000/gfd.ogg"} type={"audio/ogg"}/>
+          <p>
+          {`Your browser doesn't support HTML5 audio. Please download chrome`}
+          </p>
+          </audio>
+          </RadioContainer>
+          <li>Dispatch Timeout:</li>
+          <li>{ this.state.formattedTimeout ? this.state.formattedTimeout : null}</li>
+          <li>Misc. Details:</li>
+          <li>{remarks[0].remark}</li>
+          <li>Navigation:</li>
+          <li>
+          {
+            !this.state.destinationCoords ?  null :
+            <Map2D
+            callCategory={this.props.dispatchData.call_category}
+            userCoords={this.state.userCoords}
+            destinationCoords={this.state.destinationCoords}/>
+          }
+          </li>
+          <li>Destination:</li>
+          <li>  
+          {
+            !this.state.destinationCoords ? null :
+            <Map3D destinationCoords={this.state.destinationCoords}/>
+          }
+          </li>
+          <li>Responding: </li>
+          </DispatchDetails>
+          <ResponseContainer>
+          {
+            !this.state.responseData ? 
+            null : 
+            this.state.responseData.resp_user.map((responder) => {
+              return <Responder key={`resp-${responder.user_id}`}>{`${responder.first_name} ${responder.last_name} (${responder.rank})`}</Responder>
+            })
+          }
+          </ResponseContainer>
+          
+          </DispatchContainer>
+          
+          )
+          
         }
-        
-        <DispatchDetails>
-        <li>Apparatus Assigned: </li>
-        <ApparatusContainer>
-        
-        {
-          !this.state.apparatusAssignment
-          ? null
-          : this.state.apparatusAssignment.map((apparatus) => {
-            return <Apparatus key={apparatus}>{apparatus}</Apparatus>
-          })
-        }
-        </ApparatusContainer>
-        <li>Description:</li>
-        <li>{currentRemark}</li>
-        <li>Address:</li>
-        <li>{location + ", " + city}<br />
-        { location === premise_name
-          ? ''
-          : premise_name
-        }
-        </li>
-        <li>Nearest Cross Streets:</li>
-        <li>{ cross_street.replace(/\&/g, ' & ') }</li>
-        <li>Radio Channel & Map Reference:</li>
-        <li>{ radio_freq } &nbsp; { map_ref }</li>
-        <li>Dispatch Timeout:</li>
-        <li>{ this.state.formattedTimeout ? this.state.formattedTimeout : null}</li>
-        <li>Misc. Details:</li>
-        <li>{remarks[0].remark}</li>
-        <li>Navigation:</li>
-        <li>
-        {
-          !this.state.destinationCoords ?  null :
-          <Map2D
-          callCategory={this.props.dispatchData.call_category}
-          userCoords={this.state.userCoords}
-          destinationCoords={this.state.destinationCoords}/>
-        }
-        </li>
-        <li>Destination:</li>
-        <li>  
-        {
-          !this.state.destinationCoords ? null :
-          <Map3D destinationCoords={this.state.destinationCoords}/>
-        }
-        </li>
-        <li>Responding: </li>
-        </DispatchDetails>
-        <ResponseContainer>
-            {
-              !this.state.responseData ? 
-                null : 
-                this.state.responseData.resp_user.map((responder) => {
-                  return <Responder key={`resp-${responder.user_id}`}>{`${responder.first_name} ${responder.last_name} (${responder.rank})`}</Responder>
-                })
-            }
-        </ResponseContainer>
-        
-        </DispatchContainer>
-        
-        )
-        
       }
-    }
-    
+      
