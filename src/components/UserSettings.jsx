@@ -15,9 +15,6 @@ export default class UserSettings extends React.Component {
 
   componentDidMount() {
     this.determineUserCarrierName()
-    console.log("CDM FROM USER-SETTINGS");
-    console.log(this.props);
-    
   }
 
   determineUserCarrierName() {

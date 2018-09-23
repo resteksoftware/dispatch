@@ -10,7 +10,7 @@ import Map3D from './Map3D';
 import RespondOptions from './RespondOptions';
 import callTypeToColors from '../utils/callTypeColor';
 const hostname = 'http://localhost:8080' // TODO: change this to ternary for production vs dev
-const DEBUG = true
+const DEBUG = false
 
 export default class Dispatch extends React.Component {
   constructor(props) {
@@ -93,9 +93,6 @@ export default class Dispatch extends React.Component {
   setResponseData() {
     let responseData = Object.assign({}, this.props.responseData)
     responseData.resp_user = responseData.resp_user.filter(responder => responder.closing_resp_timestamp === null)
-    console.log('RESPONSE DATA IN DISPATCH');
-    console.log(responseData);
-    
     
     // TODO: add filter logic for apparatus that have already responded
     this.setState({ responseData: responseData })
@@ -118,7 +115,7 @@ export default class Dispatch extends React.Component {
     .filter(apparatus => apparatus !== ',' && apparatus !== '' );
     
     
-    this.setState({apparatusAssignment: apparatusData}, ()=>console.log(this.state))
+    this.setState({apparatusAssignment: apparatusData})
   }
   
   async getDestinationData(dispatchData) {
@@ -185,9 +182,6 @@ export default class Dispatch extends React.Component {
     // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
     responders = await axios.get(`${hostname}/api/responses/inc-id/${this.props.dispatchData.inc_id}`)
                             .then(responseData => {
-                              console.log('🤢 🤢 🤢 🤢 🤢');
-                              console.log(responseData);
-                              
                               responseData.data.resp_user = responseData.data.resp_user.filter(resp => resp.closing_resp_timestamp === null)
                               return responseData.data
                             })
@@ -262,21 +256,21 @@ export default class Dispatch extends React.Component {
       userResp.forEach(resp => {
         // check if response is open
         if (resp.closing_resp_timestamp === null) {
-          console.log('stepping in open response ', resp.closing_resp_timestamp);
+          if (DEBUG) console.log('stepping in open response ', resp.closing_resp_timestamp);
           // check if current inc_id matches user_resp
           if (resp.inc_id === this.props.dispatchData.inc_id) {
-            console.log('stepping in matching inc_id', resp.inc_id);
+            if (DEBUG) console.log('stepping in matching inc_id', resp.inc_id);
             // user has an open response with the same inc_id as this dispatch
             responseStatus = "YOU ARE RESPONDING"
             respUserId = resp.resp_user_id
           } else {
-            console.log('you have an open response at another incident', resp.inc_id);
+            if (DEBUG) console.log('you have an open response at another incident', resp.inc_id);
             // user has an open response belonging to a different incident
             responseStatus = "YOU ARE RESPONDING TO ANOTHER INCIDENT"
             respUserId = resp.resp_user_id
           }
         } else {
-          console.log('check if closed response has same resp.inc_id');
+          if (DEBUG) console.log('check if closed response has same resp.inc_id');
           // TODO: if its not chronological then there could be a problem with this conditional (nfd)
           if (resp.inc_id === this.props.dispatchData.inc_id) {
             responseStatus = "YOU ALREADY RESPONDED"
@@ -285,7 +279,7 @@ export default class Dispatch extends React.Component {
         }
 
         if (responseStatus === '') {
-          console.log('had some responses but all of them closed');
+          if (DEBUG) console.log('had some responses but all of them closed');
           // user had some responses in collection
           responseStatus = 'RESPOND'
           respUserId = null
@@ -297,18 +291,8 @@ export default class Dispatch extends React.Component {
       respUserId: respUserId
     })
   }
-
-  componentWillUnmount(){
-    console.log('COMPONENT WILL UNMOUNT')
-  }
-
- 
   
   render() {
-    console.log('[RERENDER] 🏄‍ DISPATCH');
-    console.log(this.state);
-    
-    
     
     const alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
     

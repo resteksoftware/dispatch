@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 const ResponseContainer = styled.div``;
 
@@ -95,13 +96,30 @@ padding: 5px;
 }
 `;
 
+const GoToIncident = styled.div`
+grid-area: respdirect;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+border: 2px solid firebrick;
+border-radius: 10px;
+margin: 5%;
+font-family: 'Source Code Pro';
+font-size: 1em;
+text-align: center;
+padding: 5px;
+> div{
+  font-family: 'Anonymous Pro';
+  font-size: .8em;
+  padding: 5px 0 5px 0;
+  color: grey;
+  font-style: italic;
+}
+`;
 
-const ResponseButton = (props) => {
-  console.log("INSIDE RESPONSE BUTTON");
-  console.log(props);
-  console.log(props.respStatus);
-  
-  
+
+const ResponseButton = (props) => { 
   if (props.respStatus === 'RESPOND') {
     return (
     <div>  
@@ -117,13 +135,14 @@ const ResponseButton = (props) => {
         </RespondStation>
       </div>)
   } else if (props.respStatus === 'YOU ARE RESPONDING') {
-    return <CancelResponse onClick={() => props.handleEndResponse(props.incId)}>
+    return (<CancelResponse onClick={() => props.handleEndResponse()}>
               Stop Responding
-            </CancelResponse>
-  } else if (props.respStatus === 'YOU ARE RESPONDING TO ANOTHER CALL') {
+            </CancelResponse>)
+  } else if (props.respStatus === 'YOU ARE RESPONDING TO ANOTHER INCIDENT') {
+    return <div>Don't worry, everyone still likes you</div>
 
   } else if (props.respStatus === 'YOU ALREADY RESPONDED') {
-    return <div>LOLOLOLOLOL</div>
+    return <div>Don't worry, everyone still likes you</div>
   }
   
 }
@@ -146,3 +165,5 @@ const RespondOptions = (props) => {
 }
 
 export default RespondOptions
+
+

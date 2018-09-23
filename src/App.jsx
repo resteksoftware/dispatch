@@ -63,7 +63,7 @@ export default class App extends React.Component {
     var urlPathname;
 
     if (!this.props.location || this.props.location.pathname === '/') {
-       urlPathname = '/6/2';
+       urlPathname = '/3/2'
     } else {
        urlPathname = this.props.location.pathname
     } 
@@ -90,7 +90,7 @@ export default class App extends React.Component {
       userID: userId,
       appInitialized: false,
       menuLoad: true,
-    }, () => {if (DEBUG) console.log('initial payload: ', this.state)})
+    }, (DEBUG) => {if (DEBUG) console.log('initial payload: ', this.state)})
     
     
     // get Dispatch History
@@ -311,8 +311,6 @@ export default class App extends React.Component {
   // }
 
   render() {
-    console.log('[RERENDER] 🍍 APP');
-
 
     const AppContainer = styled.div`
         display: grid;
