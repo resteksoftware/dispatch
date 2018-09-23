@@ -25,7 +25,8 @@ export default class Dispatch extends React.Component {
       dispatchTitle: null,
       responseToggle: false,
       responseData: null,
-      responseStatus: ''
+      responseStatus: '',
+      respUserId: null
     };
     this.getDestinationData = this.getDestinationData.bind(this);
     this.setApparatus = this.setApparatus.bind(this);
@@ -91,6 +92,12 @@ export default class Dispatch extends React.Component {
 
   setResponseData() {
     let responseData = Object.assign({}, this.props.responseData)
+    responseData.resp_user = responseData.resp_user.filter(responder => responder.closing_resp_timestamp === null)
+    console.log('RESPONSE DATA IN DISPATCH');
+    console.log(responseData);
+    
+    
+    // TODO: add filter logic for apparatus that have already responded
     this.setState({ responseData: responseData })
   }
   
@@ -160,41 +167,37 @@ export default class Dispatch extends React.Component {
    * this function is called when a user is ending a response, either from this
    * incident or from another incident
    */
-  async handleEndResponse(incId) {
+  async handleEndResponse() {
   
-    incId = incId || this.state.dispatchData.inc_id
-
     let responders;
+    let updatedUserData;
     // TODO: meditate adding fields to responses tables for gps origin, status (nfd)
 
-    let userLocation = {
-      lat: this.state.userCoords.userLat,
-      lng: this.state.userCoords.userLng
-    }
+    let userLocation = `{lat:${this.state.userCoords.userLat},lng:${this.state.userCoords.userLng}}`
 
     let responseDetails = {
-      inc_id: this.props.dispatchData.inc_id,
-      user_id: this.props.userData.user_id,
-      respond_direct: isDirect,
-      init_resp_gps: JSON.stringify(userLocation),
-      init_resp_timestamp: Date.now(),
-      onscene_resp_timestamp: null,
-      onscene_resp_gps: null,
-      closing_resp_timestamp: null,
-      closing_resp_gps: null
+      closing_resp_timestamp: Date.now(),
+      closing_resp_gps: userLocation
     }
-    // if (isDirect === 'cancel') {
-    //   this.state.responseData.resp_user.forEach( async (responder) => {
-    //     if (responder.user_id === this.props.userData.user_id) {
-    //       await axios.delete(`${hostname}/api/responses/user/${responder.resp_user_id}`)
-    //       resp = {
-    //         isResponding: false,
-    //         status: 'RESPOND',
-    //         inc_id: this.props.dispatchData.inc_id
-    //       }
-    //     }
-    //   })
-    // } else
+    
+    await axios.patch(`${hostname}/api/responses/user/${this.state.respUserId}`, responseDetails)
+
+    // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
+    responders = await axios.get(`${hostname}/api/responses/inc-id/${this.props.dispatchData.inc_id}`)
+                            .then(responseData => {
+                              console.log('🤢 🤢 🤢 🤢 🤢');
+                              console.log(responseData);
+                              
+                              responseData.data.resp_user = responseData.data.resp_user.filter(resp => resp.closing_resp_timestamp === null)
+                              return responseData.data
+                            })
+    updatedUserData = await axios.get(`${hostname}/api/users/user-id/${this.state.userData.user_id}`).then(resp => resp.data)
+    this.setState({
+      responseData: responders,
+      userData: updatedUserData
+    })
+    this.setResponseStatus()
+    return
 
   }
   
@@ -206,6 +209,7 @@ export default class Dispatch extends React.Component {
 
   async handleResponse(isDirect) {
     let responders;
+    let updatedUserData;
     // TODO: meditate adding fields to responses tables for gps origin, status (nfd)
     
     let userLocation = {
@@ -235,31 +239,63 @@ export default class Dispatch extends React.Component {
       await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res => console.log('Success handling response', res.data))
     }
     // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
-    responders = await axios.get(`${hostname}/api/responses/inc-id/${responseDetails.inc_id}`).then(resp => resp.data)
-    console.log('GETTING RESPONDERS FROM INCIDENT ID 💀 💀 💀 💀 💀 💀 💀 💀 💀 💀');
-    console.log(responders);
-    
-
-    this.setState({responseData: responders})
-    // TODO: make resp.status dynamic if user is responding to another call (nfd)
+    responders = await axios.get(`${hostname}/api/responses/inc-id/${responseDetails.inc_id}`).then(resp => resp.data) 
+    updatedUserData = await axios.get(`${hostname}/api/users/user-id/${this.state.userData.user_id}`).then(resp => resp.data)
+    this.setState({
+      responseData: responders,
+      userData: updatedUserData
+    })
     this.setResponseStatus()
     return
   }
 
   setResponseStatus() {
     let userResp = this.state.userData ? this.state.userData.responses : this.props.userData.responses
-    let responseStatus = 'RESPOND' // default is for user to respond
-    console.log('USER RESP', userResp);
+    // default is for user to respond
+    let responseStatus = '';
+    let respUserId;
     // TODO: ensure we are chronologically sorting through this collection (nfd)
-    userResp.forEach(resp => {
-      console.log('resp');
-      console.log(resp);
-      // check if response is open
-      // check if current inc_id matches user_resp
-    })
+    if (userResp.length === 0) {
+      // if there are no responses yet for the user
+      responseStatus = "RESPOND"
+    } else {
+      userResp.forEach(resp => {
+        // check if response is open
+        if (resp.closing_resp_timestamp === null) {
+          console.log('stepping in open response ', resp.closing_resp_timestamp);
+          // check if current inc_id matches user_resp
+          if (resp.inc_id === this.props.dispatchData.inc_id) {
+            console.log('stepping in matching inc_id', resp.inc_id);
+            // user has an open response with the same inc_id as this dispatch
+            responseStatus = "YOU ARE RESPONDING"
+            respUserId = resp.resp_user_id
+          } else {
+            console.log('you have an open response at another incident', resp.inc_id);
+            // user has an open response belonging to a different incident
+            responseStatus = "YOU ARE RESPONDING TO ANOTHER INCIDENT"
+            respUserId = resp.resp_user_id
+          }
+        } else {
+          console.log('check if closed response has same resp.inc_id');
+          // TODO: if its not chronological then there could be a problem with this conditional (nfd)
+          if (resp.inc_id === this.props.dispatchData.inc_id) {
+            responseStatus = "YOU ALREADY RESPONDED"
+            respUserId = resp.resp_user_id
+          }
+        }
 
-    this.setState({ responseStatus: responseStatus})
-    
+        if (responseStatus === '') {
+          console.log('had some responses but all of them closed');
+          // user had some responses in collection
+          responseStatus = 'RESPOND'
+          respUserId = null
+        }
+      })
+    }
+    this.setState({ 
+      responseStatus: responseStatus,
+      respUserId: respUserId
+    })
   }
 
   componentWillUnmount(){
@@ -463,7 +499,10 @@ export default class Dispatch extends React.Component {
               <ResponseSelect onClick={this.responseToggle}>
                 <RespondOptions 
                   handleResponse={this.handleResponse} 
+                  handleEndResponse={this.handleEndResponse}
                   responseStatus={this.state.responseStatus}/>
+                  incId={this.props.dispatchData.inc_id}
+
               </ResponseSelect>
             : <ResponseThumb onClick={this.responseToggle}></ResponseThumb>)
           : null  

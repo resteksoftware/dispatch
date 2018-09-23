@@ -117,9 +117,13 @@ const ResponseButton = (props) => {
         </RespondStation>
       </div>)
   } else if (props.respStatus === 'YOU ARE RESPONDING') {
-    return <CancelResponse onClick={() => props.handleResponse('cancel')}>
+    return <CancelResponse onClick={() => props.handleEndResponse(props.incId)}>
               Stop Responding
             </CancelResponse>
+  } else if (props.respStatus === 'YOU ARE RESPONDING TO ANOTHER CALL') {
+
+  } else if (props.respStatus === 'YOU ALREADY RESPONDED') {
+    return <div>LOLOLOLOLOL</div>
   }
   
 }
@@ -133,6 +137,8 @@ const RespondOptions = (props) => {
         <ResponseButton 
           respStatus={props.responseStatus} 
           handleResponse={props.handleResponse} 
+          handleEndResponse={props.handleEndResponse}
+          incId={props.incId}
           isDirect={true}/>
       </ResponseContent>
     </ResponseContainer>
