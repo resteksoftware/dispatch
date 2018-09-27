@@ -562,7 +562,7 @@ export default class Dispatch extends React.Component {
             handleResponse={this.handleResponse}
             handleEndResponse={this.handleEndResponse}
             responseStatus={this.state.responseStatus}
-                    incId={this.state.dispatchData.inc_id} />
+            incId={this.state.dispatchData.inc_id} />
 
             </ResponseSelect>
             : <ResponseThumb
