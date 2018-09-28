@@ -59,6 +59,7 @@ export default class App extends React.Component {
     this.buildApparatusAssigment = this.buildApparatusAssigment.bind(this);
     this.buildStationAssigment = this.buildStationAssigment.bind(this);
     this.initializeApp = this.initializeApp.bind(this);
+    this.updateDispatch = this.updateDispatch.bind(this);
   }
 
   componentDidMount() {
@@ -301,6 +302,10 @@ export default class App extends React.Component {
 
   }
 
+  updateDispatch(dispatch) {
+    this.setState({ dispatchData: dispatch })
+  }
+
   // shouldComponentUpdate(nextProps, nextState){
   //   if (this.state.appInitialized === false) {
   //     return false;
@@ -385,6 +390,7 @@ export default class App extends React.Component {
                render={ routeProps =>
                 <Dispatch {...routeProps}
                 dispatchData={this.state.dispatchData}
+                updateDispatch={this.updateDispatch}
                 responseData={this.state.responseData}
                 userData={this.state.userInfo}
                 notificationStatus={this.state.userNotificationStatus}
