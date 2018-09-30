@@ -17,18 +17,62 @@ var map,
     utilitiesJSON,
     allUtilities,
     utilityZone,
-    utilitiesInZone
+    utilitiesInZone,
+    alarmColor
   ;
+
+const MapContainer = styled.div`
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr;
+    `;
+
+const MapDiv = styled.div`
+      width: 100%;
+      height: 70vw;
+      margin: 0 0 2em 0;
+      grid-area: 1/1/2/2;
+      @media screen and (min-device-width: 768px) and (max-device-width: 1024px){
+        height: 100vw;
+      }
+      @media screen and (max-device-width: 480px) and (orientation: portrait){
+        height: 100vw;
+      }
+    `;
+
+const NavigateBtn = styled.div`
+      grid-area: 1/1/2/2;
+      position: inherit;
+      z-index: 4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      bottom: 0;
+      height: 2em;
+      width: 10em;
+      border-radius: 10px;
+      background-color: ${alarmColor};
+      margin: 1%;
+      a{
+        font-family: 'Anonymous Pro', monospace;
+        font-size: 1em;
+        color: white;
+        text-decoration: none;
+      }
+    `;
 
 export default class Map2D extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      initialized: null,
+    };
     this.initializeMap = this.initializeMap.bind(this);
   }
 
   componentDidMount () {
     this.initializeMap();
+    alarmColor = callTypeToColors(this.props.callCategory)
   }
 
   async initializeMap () {
@@ -100,8 +144,14 @@ export default class Map2D extends React.Component {
 
   }
 
+  shouldComponentUpdate(nextProps, nextState ){
+
+    console.log('nextProps', nextProps)
+    console.log('nextState', nextState)
+
+  }
+
   render() {
-    const alarmColor = callTypeToColors(this.props.callCategory)
     let dLat = this.props.destinationCoords.destinationLat;
     let dLng = this.props.destinationCoords.destinationLng;
     let oLat = undefined;
@@ -110,47 +160,7 @@ export default class Map2D extends React.Component {
     if (this.props.userCoords) {
       oLat = this.props.userCoords.userLat;
       oLng = this.props.userCoords.userLng;
-    }
-
-    const MapContainer = styled.div`
-      display: grid;
-      grid-template-columns: 1fr;
-      grid-template-rows: 1fr;
-    `;
-
-    const MapDiv = styled.div`
-      width: 100%;
-      height: 70vw;
-      margin: 0 0 2em 0;
-      grid-area: 1/1/2/2;
-      @media screen and (min-device-width: 768px) and (max-device-width: 1024px){
-        height: 100vw;
-      }
-      @media screen and (max-device-width: 480px) and (orientation: portrait){
-        height: 100vw;
-      }
-    `;
-
-    const NavigateBtn = styled.div`
-      grid-area: 1/1/2/2;
-      position: inherit;
-      z-index: 4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      bottom: 0;
-      height: 2em;
-      width: 10em;
-      border-radius: 10px;
-      background-color: ${alarmColor};
-      margin: 1%;
-      a{
-        font-family: 'Anonymous Pro', monospace;
-        font-size: 1em;
-        color: white;
-        text-decoration: none;
-      }
-    `;
+    }    
 
     return (
       <MapContainer>
