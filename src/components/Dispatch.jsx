@@ -453,6 +453,7 @@ export default class Dispatch extends React.Component {
       console.log(dd);
       
       dd.remarks[0].remark = dd.remarks[0].remark + count
+      count++
       this.setState({dispatchData: dd})
     }, 3000)
   }
