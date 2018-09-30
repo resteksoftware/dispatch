@@ -12,7 +12,7 @@ import callTypeToColors from '../utils/callTypeColor';
 const hostname = 'http://localhost:8080' // TODO: change this to ternary for production vs dev
 const DEBUG = false
 let alarmColor = 'mediumseagreen'
-
+let Title;
 
 const DispatchContainer = styled.div`
     display: grid;
@@ -190,7 +190,28 @@ export default class Dispatch extends React.Component {
     this.handleEndResponse = this.handleEndResponse.bind(this);
     this.setUserData = this.setUserData.bind(this);
     this.setResponseData = this.setResponseData.bind(this);
-    this.changeRemark = this.changeRemark.bind(this);
+  }
+
+  componentWillMount() {
+    alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
+    Title = styled.div`
+    padding: 20px 0 10px 0;
+    display: grid;
+    grid-template-rows: 2fr 1fr;
+    grid-template-columns: 1fr 5fr 1fr;
+    grid-template-areas: '.. description ..'
+    '.. timeout     ..';
+    color: white;
+    text-align: center;
+    background-color: ${alarmColor}; 
+    letter-spacing: 5px;
+    -webkit-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
+    -moz-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
+    box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
+    @media screen and (min-width: 1050px){
+      border-radius: 15px 15px 0 0;
+    }
+    `;
   }
   
   componentDidMount() {
@@ -202,8 +223,6 @@ export default class Dispatch extends React.Component {
     this.setTimeAgo();
     this.parseCallCategory();
     this.setResponseStatus();
-    this.changeRemark()
-    alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
   }
   
   getCurrentLocation() {
@@ -445,22 +464,11 @@ export default class Dispatch extends React.Component {
       respUserId: respUserId
     })
   }
-
-  changeRemark() {
-    let count = 0
-    setInterval(() => {
-      let dd = Object.assign({}, this.props.dispatchData)
-      console.log(dd);
-      
-      dd.remarks[0].remark = dd.remarks[0].remark + count
-      count++
-      this.setState({dispatchData: dd})
-    }, 3000)
-  }
   
   render() {
     
-    let { cross_street,
+    let { 
+      cross_street,
       inc_description,
       location,
       city,
@@ -471,29 +479,10 @@ export default class Dispatch extends React.Component {
       
     let currentRemark = remarks[remarks.length - 1].remark
 
-    let Title = styled.div`
-    padding: 20px 0 10px 0;
-    display: grid;
-    grid-template-rows: 2fr 1fr;
-    grid-template-columns: 1fr 5fr 1fr;
-    grid-template-areas: '.. description ..'
-    '.. timeout     ..';
-    color: white;
-    text-align: center;
-    background-color: ${alarmColor}; 
-    letter-spacing: 5px;
-    -webkit-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
-    -moz-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
-    box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
-    @media screen and (min-width: 1050px){
-      border-radius: 15px 15px 0 0;
-    }
-    `;
       
       return (
         
         <DispatchContainer key={'disp1'}>
-        
         <Title key={'disp2'}>
         <Description key={'disp3'}>{inc_description}</Description>
         <Timeout key={'disp4'}>{this.state.timeAgo ? this.state.timeAgo : null}</Timeout>
@@ -541,7 +530,7 @@ export default class Dispatch extends React.Component {
           }
           </li>
           <li key={'disp12'}>Nearest Cross Streets:</li>
-          <li key={'disp13'}>{ cross_street.replace(/\&/g, ' & ') }</li>
+          <li key={'disp13'}>{ cross_street }</li>
           <li key={'disp14'}>Radio Channel & Map Reference:</li>
           <li key={'disp15'}>{ radio_freq } &nbsp; { map_ref }</li>
           <li key={'disp16'}>Live Radio:</li>
