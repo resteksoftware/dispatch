@@ -11,6 +11,157 @@ import RespondOptions from './RespondOptions';
 import callTypeToColors from '../utils/callTypeColor';
 const hostname = 'http://localhost:8080' // TODO: change this to ternary for production vs dev
 const DEBUG = false
+let alarmColor = 'mediumseagreen'
+
+
+const DispatchContainer = styled.div`
+    display: grid;
+    grid-template-columns: 1fr;
+    max-width: 1200px;
+    `;
+
+const Description = styled.div`
+    grid-area: description;
+    font-size: 3rem;
+    font-family: 'Podkova';
+    @media screen and (max-device-width: 480px) and (orientation: portrait){
+      font-size: 2rem;
+    }
+    `;
+
+const Timeout = styled.div`
+    grid-area: timeout;
+    font-size: 1.5em;
+    font-family: 'Source Code Pro', monospace;
+    letter-spacing: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    @media screen and (max-device-width: 480px) and (orientation: portrait){
+      font-size: 1em;
+    }
+    `;
+
+const DispatchDetails = styled.ul`
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    
+    li:nth-child(odd) {
+      font-family: 'Anonymous Pro';
+      color: firebrick;
+      background-color: white;
+      padding: 20px 0 20px 10px;
+      font-size: 1.3em;
+      @media screen and (max-device-width: 480px) and (orientation: portrait){
+        font-size: 1em;
+      }
+    }
+    
+    li:nth-child(2n+3) {
+      border-bottom: 2px solid white;
+      border-top: 2px solid firebrick;
+    }
+    
+    li:nth-child(even) {
+      font-family: 'Source Code Pro', monospace;
+      color: black;
+      background-color: white;
+      padding: 5px 0 10px 10px;
+      margin-bottom: 2%;
+      font-size: 1.5em;
+      @media screen and (max-device-width: 480px) and (orientation: portrait){
+        font-size: 1.3em;
+      }
+    }
+    `;
+
+const ApparatusContainer = styled.li`
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 30px;
+    max-width: 90%;
+    margin: auto;
+    `;
+
+const Apparatus = styled.div`
+    font-family: 'Source Code Pro', monospace;
+    display: flex;
+    justify-self: center;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color: black;
+    min-width: 50%;
+    font-size: 1.5em;
+    letter-spacing: 5px;
+    padding: 5px 5px 5px 6px;
+    border-radius: 20px;
+    @media screen and (max-device-width: 480px) and (orientation: portrait){
+      border-radius: 15px;
+      font-size: 1em;
+      min-width: 90%;
+    }
+    `;
+
+const ResponseThumb = styled.div`
+    height: 8%;
+    width: 10%;
+    background-color: white;
+    position: fixed;
+    right: 0;
+    margin-top: 40%;
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+    border-top: 2px solid firebrick;
+    border-left: 2px solid firebrick;
+    border-bottom: 2px solid firebrick;
+    `;
+
+const ResponseSelect = styled.div`
+    height: 40%;
+    width: 60%;
+    background-color: white;
+    position: fixed;
+    padding: 10px;
+    z-index: 6;
+    right: 0;
+    margin-top: 40%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top-left-radius: 25px;
+    border-bottom-left-radius: 25px;
+    border-top: 2px solid firebrick;
+    border-left: 2px solid firebrick;
+    border-bottom: 2px solid firebrick;
+    `;
+
+const ResponseContainer = styled.ul`
+    padding: 0 0 30px 0;
+    margin: 0;
+    list-style: none;
+    `;
+
+const Responder = styled.li`
+    font-size: 1.5em;
+    font-family: 'Source Code Pro', monospace;
+    letter-spacing: 5px;
+    display: flex;
+    justify-content: center;
+    
+    @media screen and (max-device-width: 480px) and (orientation: portrait){
+      font-size: 1em;
+    }
+    `;
+
+const RadioContainer = styled.li`
+    display: flex;
+    justify-content:center;
+    `;
+
+
+
 
 export default class Dispatch extends React.Component {
   constructor(props) {
@@ -39,6 +190,7 @@ export default class Dispatch extends React.Component {
     this.handleEndResponse = this.handleEndResponse.bind(this);
     this.setUserData = this.setUserData.bind(this);
     this.setResponseData = this.setResponseData.bind(this);
+    this.changeRemark = this.changeRemark.bind(this);
   }
   
   componentDidMount() {
@@ -50,6 +202,8 @@ export default class Dispatch extends React.Component {
     this.setTimeAgo();
     this.parseCallCategory();
     this.setResponseStatus();
+    this.changeRemark()
+    alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
   }
   
   getCurrentLocation() {
@@ -291,20 +445,33 @@ export default class Dispatch extends React.Component {
       respUserId: respUserId
     })
   }
+
+  changeRemark() {
+    let count = 0
+    setInterval(() => {
+      let dd = Object.assign({}, this.props.dispatchData)
+      console.log(dd);
+      
+      dd.remarks[0].remark = dd.remarks[0].remark + count
+      this.setState({dispatchData: dd})
+    }, 3000)
+  }
   
   render() {
     
-    const alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
-    
-    const DispatchContainer = styled.div`
-    display: grid;
-    grid-template-columns: 1fr;
-    max-width: 1200px;
-    `;
-    
-    const Title = styled.div`
+    let { cross_street,
+      inc_description,
+      location,
+      city,
+      premise_name,
+      map_ref,
+      radio_freq,
+      remarks } = this.props.dispatchData;
+      
+    let currentRemark = remarks[remarks.length - 1].remark
+
+    let Title = styled.div`
     padding: 20px 0 10px 0;
-    
     display: grid;
     grid-template-rows: 2fr 1fr;
     grid-template-columns: 1fr 5fr 1fr;
@@ -321,183 +488,37 @@ export default class Dispatch extends React.Component {
       border-radius: 15px 15px 0 0;
     }
     `;
-    
-    const Description = styled.div`
-    grid-area: description;
-    font-size: 3rem;
-    font-family: 'Podkova';
-    @media screen and (max-device-width: 480px) and (orientation: portrait){
-      font-size: 2rem;
-    }
-    `;
-    
-    const Timeout = styled.div`
-    grid-area: timeout;
-    font-size: 1.5em;
-    font-family: 'Source Code Pro', monospace;
-    letter-spacing: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    @media screen and (max-device-width: 480px) and (orientation: portrait){
-      font-size: 1em;
-    }
-    `;
-    
-    const DispatchDetails = styled.ul`
-    padding: 0;
-    margin: 0;
-    list-style: none;
-    
-    li:nth-child(odd) {
-      font-family: 'Anonymous Pro';
-      color: firebrick;
-      background-color: white;
-      padding: 20px 0 20px 10px;
-      font-size: 1.3em;
-      @media screen and (max-device-width: 480px) and (orientation: portrait){
-        font-size: 1em;
-      }
-    }
-    
-    li:nth-child(2n+3) {
-      border-bottom: 2px solid white;
-      border-top: 2px solid firebrick;
-    }
-    
-    li:nth-child(even) {
-      font-family: 'Source Code Pro', monospace;
-      color: black;
-      background-color: white;
-      padding: 5px 0 10px 10px;
-      margin-bottom: 2%;
-      font-size: 1.5em;
-      @media screen and (max-device-width: 480px) and (orientation: portrait){
-        font-size: 1.3em;
-      }
-    }
-    `;
-    
-    const ApparatusContainer = styled.li`
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-gap: 30px;
-    max-width: 90%;
-    margin: auto;
-    `;
-    
-    const Apparatus = styled.div`
-    font-family: 'Source Code Pro', monospace;
-    display: flex;
-    justify-self: center;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    background-color: black;
-    min-width: 50%;
-    font-size: 1.5em;
-    letter-spacing: 5px;
-    padding: 5px 5px 5px 6px;
-    border-radius: 20px;
-    @media screen and (max-device-width: 480px) and (orientation: portrait){
-      border-radius: 15px;
-      font-size: 1em;
-      min-width: 90%;
-    }
-    `;
-    
-    const ResponseThumb = styled.div`
-    height: 8%;
-    width: 10%;
-    background-color: white;
-    position: fixed;
-    right: 0;
-    margin-top: 40%;
-    border-top-left-radius: 25px;
-    border-bottom-left-radius: 25px;
-    border-top: 2px solid firebrick;
-    border-left: 2px solid firebrick;
-    border-bottom: 2px solid firebrick;
-    `;
-    
-    const ResponseSelect = styled.div`
-    height: 40%;
-    width: 60%;
-    background-color: white;
-    position: fixed;
-    padding: 10px;
-    z-index: 6;
-    right: 0;
-    margin-top: 40%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-top-left-radius: 25px;
-    border-bottom-left-radius: 25px;
-    border-top: 2px solid firebrick;
-    border-left: 2px solid firebrick;
-    border-bottom: 2px solid firebrick;
-    `;
-    
-    const ResponseContainer = styled.ul`
-    padding: 0 0 30px 0;
-    margin: 0;
-    list-style: none;
-    `;
-    
-    const Responder = styled.li`
-    font-size: 1.5em;
-    font-family: 'Source Code Pro', monospace;
-    letter-spacing: 5px;
-    display: flex;
-    justify-content: center;
-    
-    @media screen and (max-device-width: 480px) and (orientation: portrait){
-      font-size: 1em;
-    }
-    `;
-    
-    const RadioContainer = styled.li`
-    display: flex;
-    justify-content:center;
-    `;
-    
-    let { cross_street,
-      inc_description,
-      location,
-      city,
-      premise_name,
-      map_ref,
-      radio_freq,
-      remarks } = this.props.dispatchData;
-      
-      let currentRemark = remarks[remarks.length - 1].remark
       
       return (
         
-        <DispatchContainer>
+        <DispatchContainer key={'disp1'}>
         
-        <Title>
-        <Description>{inc_description}</Description>
-        <Timeout>{this.state.timeAgo ? this.state.timeAgo : null}</Timeout>
+        <Title key={'disp2'}>
+        <Description key={'disp3'}>{inc_description}</Description>
+        <Timeout key={'disp4'}>{this.state.timeAgo ? this.state.timeAgo : null}</Timeout>
         </Title>
         
         {
           this.props.userData.is_volley && this.state.responseStatus !== '' ?
           (this.state.responseToggle ?
-            <ResponseSelect onClick={this.responseToggle}>
+            <ResponseSelect 
+              key={'disp5'}
+              onClick={this.responseToggle}>
             <RespondOptions 
+            key={'disp6'}
             handleResponse={this.handleResponse} 
             handleEndResponse={this.handleEndResponse}
             responseStatus={this.state.responseStatus}/>
             incId={this.props.dispatchData.inc_id}
             
             </ResponseSelect>
-            : <ResponseThumb onClick={this.responseToggle}></ResponseThumb>)
+            : <ResponseThumb 
+                key={'disp7'}
+                onClick={this.responseToggle}></ResponseThumb>)
             : null  
           }
           
-          <DispatchDetails>
+          <DispatchDetails key={'disp8'}>
           <li>Apparatus Assigned: </li>
           <ApparatusContainer>
           
@@ -505,62 +526,63 @@ export default class Dispatch extends React.Component {
             !this.state.apparatusAssignment
             ? null
             : this.state.apparatusAssignment.map((apparatus) => {
-              return <Apparatus key={apparatus}>{apparatus}</Apparatus>
+              return <Apparatus key={`disp${apparatus}`}>{apparatus}</Apparatus>
             })
           }
           </ApparatusContainer>
-          <li>Description:</li>
-          <li>{currentRemark}</li>
-          <li>Address:</li>
-          <li>{location + ", " + city}<br />
+          <li key={'disp8'}>Description:</li>
+          <li key={'disp9'}>{currentRemark}</li>
+          <li key={'disp10'}>Address:</li>
+          <li key={'disp11'}>{location + ", " + city}<br />
           { location === premise_name
             ? ''
             : premise_name
           }
           </li>
-          <li>Nearest Cross Streets:</li>
-          <li>{ cross_street.replace(/\&/g, ' & ') }</li>
-          <li>Radio Channel & Map Reference:</li>
-          <li>{ radio_freq } &nbsp; { map_ref }</li>
-          <li>Live Radio:</li>
-          <RadioContainer>
-          <audio controls={true}>
-          <source src={"http://35.199.41.42:8000/gfd.ogg"} type={"audio/mp3"}/>
-          <source src={"http://35.199.41.42:8000/gfd.ogg"} type={"audio/ogg"}/>
-          <p>
-          {`Your browser doesn't support HTML5 audio. Please download chrome`}
-          </p>
-          </audio>
+          <li key={'disp12'}>Nearest Cross Streets:</li>
+          <li key={'disp13'}>{ cross_street.replace(/\&/g, ' & ') }</li>
+          <li key={'disp14'}>Radio Channel & Map Reference:</li>
+          <li key={'disp15'}>{ radio_freq } &nbsp; { map_ref }</li>
+          <li key={'disp16'}>Live Radio:</li>
+          <RadioContainer key={'disp17'}>
+            <audio controls={true}>
+            <source src={"http://35.199.41.42:8000/gfd.ogg"} type={"audio/mp3"}/>
+            <source src={"http://35.199.41.42:8000/gfd.ogg"} type={"audio/ogg"}/>
+            <p>
+            {`Your browser doesn't support HTML5 audio. Please download chrome`}
+            </p>
+            </audio>
           </RadioContainer>
-          <li>Dispatch Timeout:</li>
-          <li>{ this.state.formattedTimeout ? this.state.formattedTimeout : null}</li>
-          <li>Misc. Details:</li>
-          <li>{remarks[0].remark}</li>
-          <li>Navigation:</li>
-          <li>
+          <li key={'disp18'}>Dispatch Timeout:</li>
+          <li key={'disp19'}>{ this.state.formattedTimeout ? this.state.formattedTimeout : null}</li>
+          <li key={'disp20'}>Misc. Details:</li>
+          <li key={'disp21'}>{remarks[0].remark}</li>
+          <li key={'disp22'}>Navigation:</li>
+          <li key={'disp23'}>
           {
             !this.state.destinationCoords ?  null :
             <Map2D
+            key={'disp24'}
             callCategory={this.props.dispatchData.call_category}
             userCoords={this.state.userCoords}
             destinationCoords={this.state.destinationCoords}/>
           }
           </li>
-          <li>Destination:</li>
-          <li>  
+          <li key={'disp25'}>Destination:</li>
+          <li key={'disp26'}>  
           {
             !this.state.destinationCoords ? null :
-            <Map3D destinationCoords={this.state.destinationCoords}/>
+            <Map3D key={'disp27'} destinationCoords={this.state.destinationCoords}/>
           }
           </li>
-          <li>Responding: </li>
+          <li key={'disp28'}>Responding: </li>
           </DispatchDetails>
-          <ResponseContainer>
+          <ResponseContainer key={'disp29'}>
           {
             !this.state.responseData ? 
             null : 
             this.state.responseData.resp_user.map((responder) => {
-              return <Responder key={`resp-${responder.user_id}`}>{`${responder.first_name} ${responder.last_name} (${responder.rank})`}</Responder>
+                  return <Responder key={`resp-${responder.first_name + responder.last_name}`}>{`${responder.first_name} ${responder.last_name} (${responder.rank})`}</Responder>
             })
           }
           </ResponseContainer>
