@@ -177,7 +177,8 @@ export default class Dispatch extends React.Component {
       responseToggle: false,
       responseData: null,
       responseStatus: '',
-      respUserId: null
+      respUserId: null,
+      dispatchData: this.props.dispatchData,
     };
     this.getDestinationData = this.getDestinationData.bind(this);
     this.setApparatus = this.setApparatus.bind(this);
@@ -190,6 +191,7 @@ export default class Dispatch extends React.Component {
     this.handleEndResponse = this.handleEndResponse.bind(this);
     this.setUserData = this.setUserData.bind(this);
     this.setResponseData = this.setResponseData.bind(this);
+    this.updateDispatch = this.updateDispatch.bind(this);
   }
 
   componentWillMount() {
@@ -213,7 +215,7 @@ export default class Dispatch extends React.Component {
     }
     `;
   }
-  
+
   componentDidMount() {
     this.getDestinationData(this.props.dispatchData);
     this.getCurrentLocation();
@@ -223,6 +225,21 @@ export default class Dispatch extends React.Component {
     this.setTimeAgo();
     this.parseCallCategory();
     this.setResponseStatus();
+    this.updateDispatch(this.props.dispatchData.inc_id)
+  }
+
+  async updateDispatch(incId) {
+    let params  = { params: { inc_id: incId } }
+    let dispatch = await axios.get(`${hostname}/api/incidents/`, params).then(resp => resp.data)
+    let dispatchString = JSON.stringify(dispatch)
+    let dispatchState = JSON.stringify(this.state.dispatchData)
+    if (dispatchString !== dispatchState) {
+      this.setState({dispatchData: dispatch})
+    }
+    
+    await new Promise(resolve => {
+      setTimeout(() => resolve(this.updateDispatch(incId)), 5000)
+    })
   }
   
   getCurrentLocation() {
@@ -475,7 +492,7 @@ export default class Dispatch extends React.Component {
       premise_name,
       map_ref,
       radio_freq,
-      remarks } = this.props.dispatchData;
+      remarks } = this.state.dispatchData;
       
     let currentRemark = remarks[remarks.length - 1].remark
 
@@ -498,8 +515,8 @@ export default class Dispatch extends React.Component {
             key={'disp6'}
             handleResponse={this.handleResponse} 
             handleEndResponse={this.handleEndResponse}
-            responseStatus={this.state.responseStatus}/>
-            incId={this.props.dispatchData.inc_id}
+            responseStatus={this.state.responseStatus}
+                    incId={this.state.dispatchData.inc_id} />
             
             </ResponseSelect>
             : <ResponseThumb 
@@ -553,7 +570,7 @@ export default class Dispatch extends React.Component {
             !this.state.destinationCoords ?  null :
             <Map2D
             key={'disp24'}
-            callCategory={this.props.dispatchData.call_category}
+            callCategory={this.state.dispatchData.call_category}
             userCoords={this.state.userCoords}
             destinationCoords={this.state.destinationCoords}/>
           }

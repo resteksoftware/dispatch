@@ -144,12 +144,12 @@ export default class Map2D extends React.Component {
 
   }
 
-  shouldComponentUpdate(nextProps, nextState ){
+  // shouldComponentUpdate(nextProps, nextState ){
 
-    console.log('nextProps', nextProps)
-    console.log('nextState', nextState)
+  //   console.log('nextProps', nextProps)
+  //   console.log('nextState', nextState)
 
-  }
+  // }
 
   render() {
     let dLat = this.props.destinationCoords.destinationLat;

@@ -61,9 +61,9 @@ export default class App extends React.Component {
 
   componentDidMount() {
     var urlPathname;
-
+    
     if (!this.props.location || this.props.location.pathname === '/') {
-       urlPathname = '/3/2'
+       urlPathname = '/50/2'
     } else {
        urlPathname = this.props.location.pathname
     } 
@@ -103,7 +103,7 @@ export default class App extends React.Component {
     let carrierData = await axios.get(`${hostname}/api/carriers`).then(res => res.data);
     
     // get User Tracking
-    let trackingData = await axios.get(`${hostname}/api/users/track/${15}`) //TODO: remove hardcoded user (nfd)
+    let trackingData = await axios.get(`${hostname}/api/users/track/${userId}`) //TODO: remove hardcoded user (nfd)
     .then( res => res.data )
     .catch( err => err )
     
