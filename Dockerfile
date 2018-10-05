@@ -17,14 +17,14 @@ COPY src/assets/favicon.ico dist-dispatch/favicon.ico
 COPY package.json .
 
 # Set build env vars used in the docker build, not used on the server
-ARG AWS_ACCESS_KEY_ID=AKIAJQAORV26GQCNYONA
-ARG AWS_SECRET_ACCESS_KEY=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
+ARG AWS_ACCESS_KEY_ID=AKIAJY5VLHVOWYF5XEZQ
+ARG AWS_SECRET_ACCESS_KEY=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
 ARG AWS_REGION=us-east-1
 
 # Update with a fresh set of environment variables
 # and aws-exports for Cognito
-RUN aws s3 cp s3://dispatchresponse/scripts/environment-vars.txt .env
-RUN aws s3 cp s3://dispatchresponse/scripts/aws-exports.js .aws-exports.js
+# RUN aws s3 cp s3://dispatchresponse/scripts/environment-vars.txt .env
+# RUN aws s3 cp s3://dispatchresponse/scripts/aws-exports.js .aws-exports.js
 
 # Install dependencies
 # RUN npm install --production
@@ -56,6 +56,7 @@ ADD . .
 
 RUN npm run build
 
+EXPOSE 3001
 # Forward log messages to docker log collector
 # RUN ln -s /dev/stdout /var/log/nginx/access.log \
     # && ln -sf /dev/stderr/ /var/log/nginx/error.log

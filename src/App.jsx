@@ -61,13 +61,13 @@ export default class App extends React.Component {
 
   componentDidMount() {
     var urlPathname;
-    
+
     if (!this.props.location || this.props.location.pathname === '/') {
        urlPathname = '/50/2'
     } else {
        urlPathname = this.props.location.pathname
-    } 
-      
+    }
+
     let { userID, slug } = this.state;
     slug = urlPathname.split('/')[1];
     userID = urlPathname.split('/')[2];
@@ -78,7 +78,7 @@ export default class App extends React.Component {
 
     //get Current Dispatch
     let dispatch = await axios.get(`${hostname}/d/${incId}/${userId}`).then(res => res.data); // TODO: remove hard coded user and incident
-    
+
     //set state immediately for integral dispatch data
     this.setState({
       dispatchData: dispatch.data.inc,
@@ -91,8 +91,7 @@ export default class App extends React.Component {
       appInitialized: false,
       menuLoad: true,
     }, (DEBUG) => {if (DEBUG) console.log('initial payload: ', this.state)})
-    
-    
+
     // get Dispatch History
     // let dispatchHistoryData = await axios.get('/api/calls');
     // get stations
@@ -101,17 +100,17 @@ export default class App extends React.Component {
     let apparatusData = await axios.get(`${hostname}/api/apparatus/${dispatch.data.dept.dept_id}`).then(res => res.data);
     // get All Carriers
     let carrierData = await axios.get(`${hostname}/api/carriers`).then(res => res.data);
-    
+
     // get User Tracking
     let trackingData = await axios.get(`${hostname}/api/users/track/${userId}`) //TODO: remove hardcoded user (nfd)
     .then( res => res.data )
     .catch( err => err )
-    
+
     // // build collection for rendering apparatus
     let userApparatusAssignmentData = await this.buildApparatusAssigment(apparatusData, trackingData.track_user_app);
     // // build collection for rendering stations
     let userStationAssignmentData = await this.buildStationAssigment(stationData, trackingData.track_user_sta);
-    
+
     // // set state for rest of app. all data is loaded
     this.setState({
       dispatchHistory: [],
@@ -170,8 +169,8 @@ export default class App extends React.Component {
         for (let i = 0; i < userApparatusTracking.length; i++) {
           if( userApparatusTracking[i]['app_id'] === app['app_id'] ) {
             return {
-              id: app['app_id'], 
-              app_abbr: app['app_abbr'], 
+              id: app['app_id'],
+              app_abbr: app['app_abbr'],
               active: true
             }
           }
@@ -209,7 +208,7 @@ export default class App extends React.Component {
   }
 
   async modifyApparatusAssignment(e) {
-    
+
     let { userID } = this.state;
     let appID = e.target.id.split('-').pop();
     let bodyDetails = {
@@ -253,7 +252,7 @@ export default class App extends React.Component {
     let bodyDetails = {
       user_id: userID,
       sta_id: staID
-    } 
+    }
     let shouldTurnOn;
     this.state.userStationAssignment.forEach(sta => {
       if (parseInt(sta.id) === parseInt(staID)) {
@@ -280,7 +279,7 @@ export default class App extends React.Component {
     let userStationAssignmentData = await this.buildStationAssigment(this.state.allStations, userTracks.track_user_sta);
     let userApparatusAssignmentData = await this.buildApparatusAssigment(this.state.allApparatus, userTracks.track_user_app);
     this.toggleDBSave();
-    
+
     this.setState({
       userApparatusTracking: userTracks.track_user_app,
       userStationTracking: userTracks.track_user_sta,
@@ -438,9 +437,11 @@ export default class App extends React.Component {
                render={ routeProps =>
                  <Dispatch {...routeProps}
                    dispatchData={this.state.dispatchData}
+                   responseData={this.state.responseData}
                    notificationStatus={this.state.userNotificationStatus}
                    modifyNotificationStatus={this.modifyNotificationStatus}
-                   userData={{slug: this.state.slug, userID: this.state.userID}}
+                   userData={this.state.userInfo}
+                   isAdmin={this.state.userIsAdmin}
                  /> }
              />
 
