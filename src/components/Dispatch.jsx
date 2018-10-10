@@ -7,7 +7,6 @@ import parse from 'date-fns/parse';
 import styled from 'styled-components';
 import Map2D from './Map2D';
 import Map3D from './Map3D';
-import ReactPlayer from 'react-player'
 import RespondOptions from './RespondOptions';
 import callTypeToColors from '../utils/callTypeColor';
 const hostname = 'http://localhost:8080' // TODO: change this to ternary for production vs dev
@@ -601,14 +600,13 @@ export default class Dispatch extends React.Component {
           <li key={'disp15'}>{ `${radio_freq ? radio_freq : 'NO RADIO PROVIDED'} \n ${map_ref ? map_ref : 'NO MAP PROVIDED'}` }</li>
           <li key={'disp16'}>Live Radio:</li>
           <RadioContainer key={'disp17'}>
-            {/* <audio controls={true}>
+            <audio controls={true}>
             <source src={"http://audio-ogg.ibiblio.org:8000/wcpe.ogg"} type={"audio/ogg"}/>
             <source src={"http://35.199.41.42:8000/gfd.mp3"} type={"audio/mp3"}/>
             <p>
             {`Your browser doesn't support HTML5 audio. Please download chrome`}
             </p>
-            </audio> */}
-            <ReactPlayer />
+            </audio>
           </RadioContainer>
           <li key={'disp18'}>Dispatch Timeout:</li>
           <li key={'disp19'}>{ this.state.formattedTimeout ? this.state.formattedTimeout : null}</li>
