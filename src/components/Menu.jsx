@@ -26,7 +26,7 @@ export default class Menu extends React.Component {
       const MenuContainer = styled.div`
           grid-area: menu;
           color: black;
-          font-family: 'Podkova';
+          font-family: 'Zilla Slab';
           font-size: 2em;
           padding: 20px 0;
           margin: 0;

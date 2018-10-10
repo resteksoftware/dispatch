@@ -44,7 +44,7 @@ export default class DispatchHistory extends React.Component {
       color: white;
       background-color: gray;
       padding: .7% 0;
-      font-family: 'Podkova';
+      font-family: 'Zilla Slab';
     `
 
     const TableData = styled.div`
@@ -71,7 +71,7 @@ export default class DispatchHistory extends React.Component {
       color: white;
       font-size: 1em;
       padding: 1% 0;
-      font-family: 'Podkova';
+      font-family: 'Zilla Slab';
       width: 100%;
       position: sticky;
       top: 0;

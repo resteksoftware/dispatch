@@ -99,7 +99,7 @@ export default class UserSettings extends React.Component {
       align-items: center;
       justify-content: center;
       font-size: 3.5em;
-      font-family: 'Podkova';
+      font-family: 'Zilla Slab';
       @media screen and (min-width: 1024px){
         border-radius: 15px 15px 0 0;
       }

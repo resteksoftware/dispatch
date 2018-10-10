@@ -22,16 +22,16 @@ const DispatchContainer = styled.div`
     display: grid;
     grid-template-columns: 1fr;
     max-width: 1200px;
-    `;
+`;
 
 const Description = styled.div`
     grid-area: description;
     font-size: 3rem;
-    font-family: 'Podkova';
+    font-family: 'Zilla Slab';
     @media screen and (max-device-width: 480px) and (orientation: portrait){
       font-size: 2rem;
     }
-    `;
+`;
 
 const Timeout = styled.div`
     grid-area: timeout;
@@ -44,7 +44,7 @@ const Timeout = styled.div`
     @media screen and (max-device-width: 480px) and (orientation: portrait){
       font-size: 1em;
     }
-    `;
+`;
 
 const DispatchDetails = styled.ul`
     padding: 0;
@@ -78,7 +78,7 @@ const DispatchDetails = styled.ul`
         font-size: 1.3em;
       }
     }
-    `;
+`;
 
 const ApparatusContainer = styled.li`
     display: grid;
@@ -86,7 +86,7 @@ const ApparatusContainer = styled.li`
     grid-gap: 30px;
     max-width: 90%;
     margin: auto;
-    `;
+`;
 
 const Apparatus = styled.div`
     font-family: 'Source Code Pro', monospace;
@@ -106,13 +106,16 @@ const Apparatus = styled.div`
       font-size: 1em;
       min-width: 90%;
     }
-    `;
+`;
 
 const ResponseThumb = styled.div`
     height: 8%;
     width: 10%;
     background-color: white;
     position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     right: 0;
     margin-top: 40%;
     border-top-left-radius: 25px;
@@ -120,7 +123,24 @@ const ResponseThumb = styled.div`
     border-top: 2px solid firebrick;
     border-left: 2px solid firebrick;
     border-bottom: 2px solid firebrick;
-    `;
+`;
+
+const ResponseArrow = styled.div`
+	left: 0.25em;
+	transform: rotate(-135deg);
+  border-style: solid;
+	border-width: 0.25em 0.25em 0 0;
+	content: '';
+	display: inline-block;
+	height: 0.45em;
+	left: 0.15em;
+	position: relative;
+  color: firebrick;
+	top: 0.15em;
+	transform: rotate(225deg);
+	vertical-align: top;
+	width: 0.45em;
+`;
 
 const ResponseSelect = styled.div`
     height: 40%;
@@ -139,7 +159,7 @@ const ResponseSelect = styled.div`
     border-top: 2px solid firebrick;
     border-left: 2px solid firebrick;
     border-bottom: 2px solid firebrick;
-    `;
+`;
 
 const ResponseContainer = styled.ul`
     padding: 0 0 30px 0;
@@ -153,7 +173,7 @@ const ResponseContainer = styled.ul`
     @media screen and (max-device-width: 480px) and (orientation: portrait){
       font-size: 1.3em;
     }
-    `;
+`;
 
 const Responder = styled.li`
     font-size: 1.5em;
@@ -165,15 +185,12 @@ const Responder = styled.li`
     @media screen and (max-device-width: 480px) and (orientation: portrait){
       font-size: 1em;
     }
-    `;
+`;
 
 const RadioContainer = styled.li`
     display: flex;
     justify-content:center;
-    `;
-
-
-
+`;
 
 export default class Dispatch extends React.Component {
   constructor(props) {
@@ -209,22 +226,22 @@ export default class Dispatch extends React.Component {
   componentWillMount() {
     alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
     Title = styled.div`
-    padding: 20px 0 10px 0;
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    grid-template-columns: 15px 5fr 15px;
-    grid-template-areas: '.. description ..'
-                         '.. timeout     ..';
-    color: white;
-    text-align: center;
-    background-color: ${alarmColor}; 
-    letter-spacing: 5px;
-    -webkit-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
-    -moz-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
-    box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
-    @media screen and (min-width: 1050px){
-      border-radius: 15px 15px 0 0;
-    }
+      padding: 20px 0 10px 0;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      grid-template-columns: 15px 5fr 15px;
+      grid-template-areas: '.. description ..'
+                          '.. timeout     ..';
+      color: white;
+      text-align: center;
+      background-color: ${alarmColor}; 
+      letter-spacing: 5px;
+      -webkit-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
+      -moz-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
+      box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
+      @media screen and (min-width: 1050px){
+        border-radius: 15px 15px 0 0;
+      }
     `;
   }
 
@@ -245,12 +262,11 @@ export default class Dispatch extends React.Component {
     let params  = { params: { inc_id: incId } }
     let dispatch = await axios.get(`${hostname}/api/incidents/`, params).then(resp => resp.data)
     let response = await axios.get(`${hostname}/api/responses/inc-id/${incId}`).then(resp => resp.data)
-      
+    
     this.setState({
       dispatchData: dispatch,
       responseData: response
     })
-    
 
     // NOTE: this creates 2 queries every 3 seconds for each user actively viewing an incident and can be optimized (nfd)
     await new Promise(resolve => {
@@ -537,7 +553,9 @@ export default class Dispatch extends React.Component {
             </ResponseSelect>
             : <ResponseThumb 
                 key={'disp7'}
-                onClick={this.responseToggle}></ResponseThumb>)
+                onClick={this.responseToggle}>
+                <ResponseArrow/>  
+              </ResponseThumb>)
             : null  
           }
           
