@@ -63,7 +63,7 @@ export default class App extends React.Component {
     var urlPathname;
 
     if (!this.props.location || this.props.location.pathname === '/') {
-       urlPathname = '/468/2'
+       urlPathname = '/519/2'
     } else {
        urlPathname = this.props.location.pathname
     }

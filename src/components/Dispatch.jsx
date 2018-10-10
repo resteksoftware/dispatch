@@ -7,6 +7,7 @@ import parse from 'date-fns/parse';
 import styled from 'styled-components';
 import Map2D from './Map2D';
 import Map3D from './Map3D';
+import ReactPlayer from 'react-player'
 import RespondOptions from './RespondOptions';
 import callTypeToColors from '../utils/callTypeColor';
 const hostname = 'http://localhost:8080' // TODO: change this to ternary for production vs dev
@@ -25,8 +26,8 @@ const DispatchContainer = styled.div`
 `;
 
 const Description = styled.div`
-    grid-area: description;
     font-size: 3rem;
+    grid-area: 1/2/2/3;
     font-family: 'Zilla Slab';
     @media screen and (max-device-width: 480px) and (orientation: portrait){
       font-size: 2rem;
@@ -34,8 +35,8 @@ const Description = styled.div`
 `;
 
 const Timeout = styled.div`
-    grid-area: timeout;
     font-size: 1.5em;
+    grid-area: 2/2/3/3;
     font-family: 'Source Code Pro', monospace;
     letter-spacing: 5px;
     display: flex;
@@ -74,6 +75,7 @@ const DispatchDetails = styled.ul`
       padding: 5px 0 10px 10px;
       margin-bottom: 2%;
       font-size: 1.5em;
+      max-width: 96vw;
       @media screen and (max-device-width: 480px) and (orientation: portrait){
         font-size: 1.3em;
       }
@@ -82,9 +84,10 @@ const DispatchDetails = styled.ul`
 
 const ApparatusContainer = styled.li`
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax( 80px, 1fr) );
     grid-gap: 30px;
     max-width: 90%;
+    padding: 0px 10px!important;
     margin: auto;
 `;
 
@@ -202,7 +205,7 @@ export default class Dispatch extends React.Component {
       apparatusAssignment: null,
       timeAgo: null,
       formattedTimeout: null,
-      dispatchTitle: null,
+      dispatchTitle: this.props.dispatchData.inc_category,
       responseToggle: false,
       responseData: this.props.responseData,
       responseStatus: '',
@@ -225,13 +228,12 @@ export default class Dispatch extends React.Component {
 
   componentWillMount() {
     alarmColor = callTypeToColors(this.props.dispatchData.inc_description)
+    this.parseCallCategory();
     Title = styled.div`
       padding: 20px 0 10px 0;
       display: grid;
-      grid-template-rows: 1fr 1fr;
+      grid-template-rows: 1fr 30px;
       grid-template-columns: 15px 5fr 15px;
-      grid-template-areas: '.. description ..'
-                          '.. timeout     ..';
       color: white;
       text-align: center;
       background-color: ${alarmColor}; 
@@ -252,7 +254,6 @@ export default class Dispatch extends React.Component {
     this.setUserData();
     this.setResponseData();
     this.setTimeAgo();
-    this.parseCallCategory();
     this.setResponseStatus();
     this.updateDispatch(this.props.dispatchData.inc_id)
   }
@@ -321,9 +322,11 @@ export default class Dispatch extends React.Component {
   }
   
   parseCallCategory() {
+    
     let dispatchTitle = this.props.dispatchData.inc_category
     .slice(0)
     .replace(/\//g, '/\n');
+
     this.setState({dispatchTitle: dispatchTitle});
   }
   
@@ -527,13 +530,16 @@ export default class Dispatch extends React.Component {
       remarks } = this.state.dispatchData;
       
     let currentRemark = remarks[remarks.length - 1].remark
-
+      console.log(this.state.dispatchData);
+      
       
       return (
         
         <DispatchContainer key={'disp1'}>
         <Title key={'disp2'}>
-        <Description key={'disp3'}>{inc_description}</Description>
+        <Description key={'disp3'}>
+            {this.state.dispatchTitle}
+        </Description>
         <Timeout key={'disp4'}>{this.state.timeAgo ? this.state.timeAgo : null}</Timeout>
         </Title>
         
@@ -569,8 +575,8 @@ export default class Dispatch extends React.Component {
             : (
               this.state.apparatusAssignment.length === 0 ?
               'NONE' :
-              this.state.apparatusAssignment.map((apparatus) => {
-              return <Apparatus key={`disp${apparatus}`}>{apparatus}</Apparatus>
+              this.state.apparatusAssignment.map( app => {
+              return <Apparatus key={`disp${app}`}>{app}</Apparatus>
             }))
           }
           </ApparatusContainer>
@@ -589,13 +595,14 @@ export default class Dispatch extends React.Component {
           <li key={'disp15'}>{ `${radio_freq ? radio_freq : 'NO RADIO PROVIDED'} \n ${map_ref ? map_ref : 'NO MAP PROVIDED'}` }</li>
           <li key={'disp16'}>Live Radio:</li>
           <RadioContainer key={'disp17'}>
-            <audio controls={true}>
-            <source src={"http://35.199.41.42:8000/gfd.ogg"} type={"audio/mp3"}/>
-            <source src={"http://35.199.41.42:8000/gfd.ogg"} type={"audio/ogg"}/>
+            {/* <audio controls={true}>
+            <source src={"http://audio-ogg.ibiblio.org:8000/wcpe.ogg"} type={"audio/ogg"}/>
+            <source src={"http://35.199.41.42:8000/gfd.mp3"} type={"audio/mp3"}/>
             <p>
             {`Your browser doesn't support HTML5 audio. Please download chrome`}
             </p>
-            </audio>
+            </audio> */}
+            <ReactPlayer />
           </RadioContainer>
           <li key={'disp18'}>Dispatch Timeout:</li>
           <li key={'disp19'}>{ this.state.formattedTimeout ? this.state.formattedTimeout : null}</li>
