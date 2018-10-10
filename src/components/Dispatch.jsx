@@ -15,6 +15,8 @@ const DEBUG = false
 let alarmColor = 'mediumseagreen'
 let Title;
 
+let tmpCount = 0;
+
 const rankAbbr = {
   'firefighter' : 'ff'
 }
@@ -256,6 +258,7 @@ export default class Dispatch extends React.Component {
     this.setTimeAgo();
     this.setResponseStatus();
     this.updateDispatch(this.props.dispatchData.inc_id)
+    setTimeout(() => this.addApparatus(), 3000)
   }
 
   async updateDispatch(incId) {
@@ -263,10 +266,12 @@ export default class Dispatch extends React.Component {
     let params  = { params: { inc_id: incId } }
     let dispatch = await axios.get(`${hostname}/api/incidents/`, params).then(resp => resp.data)
     let response = await axios.get(`${hostname}/api/responses/inc-id/${incId}`).then(resp => resp.data)
+    let appAssignment = this.setApparatus(dispatch.assignments)
     
     this.setState({
       dispatchData: dispatch,
-      responseData: response
+      responseData: response,
+      apparatusAssignment: appAssignment
     })
 
     // NOTE: this creates 2 queries every 3 seconds for each user actively viewing an incident and can be optimized (nfd)
@@ -330,17 +335,20 @@ export default class Dispatch extends React.Component {
     this.setState({dispatchTitle: dispatchTitle});
   }
   
-  setApparatus() {
+  setApparatus(newAssignment) {
     
     //incoming props seems unpredictable with , and ' '
-    let assignments = this.props.dispatchData.assignments
+    let assignments = newAssignment || this.props.dispatchData.assignments;
     let apparatusData = assignments[assignments.length - 1].assignment
     .replace(/\s/g, ',') //replace spaces with commas
     .split(',')
     .filter(apparatus => apparatus !== ',' && apparatus !== '' );
     
-    
-    this.setState({apparatusAssignment: apparatusData})
+    if (!newAssignment) {
+      this.setState({apparatusAssignment: apparatusData})
+    } else {
+      return apparatusData
+    }
   }
   
   async getDestinationData(dispatchData) {
@@ -530,8 +538,6 @@ export default class Dispatch extends React.Component {
       remarks } = this.state.dispatchData;
       
     let currentRemark = remarks[remarks.length - 1].remark
-      console.log(this.state.dispatchData);
-      
       
       return (
         
