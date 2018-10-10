@@ -292,7 +292,7 @@ export default class Menu extends React.Component {
                 <li>Settings </li>
               </NavLink>
 
-            <NotificationTitle> Notifications:</NotificationTitle>
+            {/* <NotificationTitle> Notifications:</NotificationTitle>
             <NotificationSwitch>
               <span>{this.props.ns ? 'ON' : 'OFF'}</span>
                 <input
@@ -301,7 +301,7 @@ export default class Menu extends React.Component {
                   defaultChecked={this.props.ns}
                   onChange={this.props.mns}/>
                 <label htmlFor={'notifications'} id="notification-toggle"></label>
-            </NotificationSwitch>
+            </NotificationSwitch> */}
           </MenuItems>
         </MenuContainer>
     )

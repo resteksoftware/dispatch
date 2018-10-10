@@ -14,6 +14,10 @@ const DEBUG = false
 let alarmColor = 'mediumseagreen'
 let Title;
 
+const rankAbbr = {
+  'firefighter' : 'ff'
+}
+
 const DispatchContainer = styled.div`
     display: grid;
     grid-template-columns: 1fr;
@@ -51,7 +55,7 @@ const DispatchDetails = styled.ul`
       font-family: 'Anonymous Pro';
       color: firebrick;
       background-color: white;
-      padding: 20px 0 20px 10px;
+      padding: 20px 0 10px 10px;
       font-size: 1.3em;
       @media screen and (max-device-width: 480px) and (orientation: portrait){
         font-size: 1em;
@@ -141,6 +145,14 @@ const ResponseContainer = styled.ul`
     padding: 0 0 30px 0;
     margin: 0;
     list-style: none;
+    font-family: 'Source Code Pro', monospace;
+    color: black;
+    background-color: white;
+    padding: 5px 0 10px 10px;
+    font-size: 1.5em;
+    @media screen and (max-device-width: 480px) and (orientation: portrait){
+      font-size: 1.3em;
+    }
     `;
 
 const Responder = styled.li`
@@ -175,7 +187,7 @@ export default class Dispatch extends React.Component {
       formattedTimeout: null,
       dispatchTitle: null,
       responseToggle: false,
-      responseData: null,
+      responseData: this.props.responseData,
       responseStatus: '',
       respUserId: null,
       dispatchData: this.props.dispatchData,
@@ -199,10 +211,10 @@ export default class Dispatch extends React.Component {
     Title = styled.div`
     padding: 20px 0 10px 0;
     display: grid;
-    grid-template-rows: 2fr 1fr;
-    grid-template-columns: 1fr 5fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 15px 5fr 15px;
     grid-template-areas: '.. description ..'
-    '.. timeout     ..';
+                         '.. timeout     ..';
     color: white;
     text-align: center;
     background-color: ${alarmColor}; 
@@ -229,16 +241,20 @@ export default class Dispatch extends React.Component {
   }
 
   async updateDispatch(incId) {
+    
     let params  = { params: { inc_id: incId } }
     let dispatch = await axios.get(`${hostname}/api/incidents/`, params).then(resp => resp.data)
-    let dispatchString = JSON.stringify(dispatch)
-    let dispatchState = JSON.stringify(this.state.dispatchData)
-    if (dispatchString !== dispatchState) {
-      this.setState({dispatchData: dispatch})
-    }
+    let response = await axios.get(`${hostname}/api/responses/inc-id/${incId}`).then(resp => resp.data)
+      
+    this.setState({
+      dispatchData: dispatch,
+      responseData: response
+    })
     
+
+    // NOTE: this creates 2 queries every 3 seconds for each user actively viewing an incident and can be optimized (nfd)
     await new Promise(resolve => {
-      setTimeout(() => resolve(this.updateDispatch(incId)), 5000)
+      setTimeout(() => resolve(this.updateDispatch(incId)), 3000)
     })
   }
   
@@ -532,9 +548,12 @@ export default class Dispatch extends React.Component {
           {
             !this.state.apparatusAssignment
             ? null
-            : this.state.apparatusAssignment.map((apparatus) => {
+            : (
+              this.state.apparatusAssignment.length === 0 ?
+              'NONE' :
+              this.state.apparatusAssignment.map((apparatus) => {
               return <Apparatus key={`disp${apparatus}`}>{apparatus}</Apparatus>
-            })
+            }))
           }
           </ApparatusContainer>
           <li key={'disp8'}>Description:</li>
@@ -547,9 +566,9 @@ export default class Dispatch extends React.Component {
           }
           </li>
           <li key={'disp12'}>Nearest Cross Streets:</li>
-          <li key={'disp13'}>{ cross_street }</li>
+          <li key={'disp13'}>{ `${cross_street ? cross_street : 'NO CROSS STREET PROVIDED'}` }</li>
           <li key={'disp14'}>Radio Channel & Map Reference:</li>
-          <li key={'disp15'}>{ radio_freq } &nbsp; { map_ref }</li>
+          <li key={'disp15'}>{ `${radio_freq ? radio_freq : 'NO RADIO PROVIDED'} \n ${map_ref ? map_ref : 'NO MAP PROVIDED'}` }</li>
           <li key={'disp16'}>Live Radio:</li>
           <RadioContainer key={'disp17'}>
             <audio controls={true}>
@@ -587,10 +606,13 @@ export default class Dispatch extends React.Component {
           <ResponseContainer key={'disp29'}>
           {
             !this.state.responseData ? 
-            null : 
-            this.state.responseData.resp_user.map((responder) => {
-                  return <Responder key={`resp-${responder.first_name + responder.last_name}`}>{`${responder.first_name} ${responder.last_name} (${responder.rank})`}</Responder>
-            })
+            null : (
+              this.state.responseData.resp_user.length === 0 ? 
+                  'NO RESPONDERS AT THIS TIME' :
+                  this.state.responseData.resp_user.map((responder) => {
+                    return responder.closing_resp_timestamp === null ? <Responder key={`resp-${responder.first_name + responder.last_name}`}>{`${responder.first_name} ${responder.last_name} (${rankAbbr[responder.rank]})`}</Responder> : null
+                  }) )
+            
           }
           </ResponseContainer>
           

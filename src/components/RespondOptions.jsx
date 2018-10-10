@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
 
 const ResponseContainer = styled.div`
   height: 100%;
@@ -97,27 +96,7 @@ const ResponseMessage = styled.div`
   font-family: 'Source Code Pro', monospace;
 `;
 
-const GoToIncident = styled.div`
-grid-area: respdirect;
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-border: 2px solid firebrick;
-border-radius: 10px;
-margin: 5%;
-font-family: 'Source Code Pro';
-font-size: 1em;
-text-align: center;
-padding: 5px;
-> div{
-  font-family: 'Anonymous Pro';
-  font-size: .8em;
-  padding: 5px 0 5px 0;
-  color: grey;
-  font-style: italic;
-}
-`;
+
 
 
 const ResponseButton = (props) => {
@@ -126,13 +105,9 @@ const ResponseButton = (props) => {
       <div>
         <RespondDirect onClick={() => props.handleResponse(props.isDirect)}>
           Direct to Scene
-              <br />
-          <div>(10 mins to scene)</div>
         </RespondDirect>
         <RespondStation>
           To Station First
-              <br />
-          <div>(50 mins to scene)</div>
         </RespondStation>
       </div>)
   } else if (props.respStatus === 'YOU ARE RESPONDING') {

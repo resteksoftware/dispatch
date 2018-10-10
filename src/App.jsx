@@ -63,7 +63,7 @@ export default class App extends React.Component {
     var urlPathname;
 
     if (!this.props.location || this.props.location.pathname === '/') {
-       urlPathname = '/50/2'
+       urlPathname = '/467/2'
     } else {
        urlPathname = this.props.location.pathname
     }
@@ -78,7 +78,6 @@ export default class App extends React.Component {
 
     //get Current Dispatch
     let dispatch = await axios.get(`${hostname}/d/${incId}/${userId}`).then(res => res.data); // TODO: remove hard coded user and incident
-
     //set state immediately for integral dispatch data
     this.setState({
       dispatchData: dispatch.data.inc,
