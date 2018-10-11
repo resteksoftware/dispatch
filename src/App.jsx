@@ -20,9 +20,11 @@ const UserSettings = Loadable({
   timeout: 10000
 });
 
-const GAPI_KEY = process.env.GAPI_KEY;
-const hostname = 'http://localhost:8080' // TODO: add ternary for '' to make links relative (nfd)
+const env = require('env2')('.env')
 const DEBUG = true;
+const GAPI_KEY = process.env.GAPI_KEY;
+const HOSTNAME =`http://${location.hostname}`
+const PORT = 8080
 
 export default class App extends React.Component {
   constructor(props) {
@@ -77,7 +79,7 @@ export default class App extends React.Component {
   async initializeApp(incId, userId){
 
     //get Current Dispatch
-    let dispatch = await axios.get(`${hostname}/d/${incId}/${userId}`).then(res => res.data); // TODO: remove hard coded user and incident
+    let dispatch = await axios.get(`${HOSTNAME}:${PORT}/d/${incId}/${userId}`).then(res => res.data); // TODO: remove hard coded user and incident
     //set state immediately for integral dispatch data
     this.setState({
       dispatchData: dispatch.data.inc,
@@ -94,14 +96,14 @@ export default class App extends React.Component {
     // get Dispatch History
     // let dispatchHistoryData = await axios.get('/api/calls');
     // get stations
-    let stationData = await axios.get(`${hostname}/api/stations/${dispatch.data.dept.dept_id}`).then(res => res.data);
+    let stationData = await axios.get(`${HOSTNAME}:${PORT}/api/stations/${dispatch.data.dept.dept_id}`).then(res => res.data);
     // get All Station Apparatus
-    let apparatusData = await axios.get(`${hostname}/api/apparatus/${dispatch.data.dept.dept_id}`).then(res => res.data);
+    let apparatusData = await axios.get(`${HOSTNAME}:${PORT}/api/apparatus/${dispatch.data.dept.dept_id}`).then(res => res.data);
     // get All Carriers
-    let carrierData = await axios.get(`${hostname}/api/carriers`).then(res => res.data);
+    let carrierData = await axios.get(`${HOSTNAME}:${PORT}/api/carriers`).then(res => res.data);
 
     // get User Tracking
-    let trackingData = await axios.get(`${hostname}/api/users/track/${userId}`) //TODO: remove hardcoded user (nfd)
+    let trackingData = await axios.get(`${HOSTNAME}:${PORT}/api/users/track/${userId}`) //TODO: remove hardcoded user (nfd)
     .then( res => res.data )
     .catch( err => err )
 
@@ -223,17 +225,17 @@ export default class App extends React.Component {
     })
 
     if (shouldTurnOn) {
-      await axios.post(`${hostname}/api/users/track`, bodyDetails)
+      await axios.post(`${HOSTNAME}:${PORT}/api/users/track`, bodyDetails)
         .then(resp => resp.data)
         .catch(err => console.error(err))
     } else {
-      await axios.delete(`${hostname}/api/users/track/`, { data: bodyDetails })
+      await axios.delete(`${HOSTNAME}:${PORT}/api/users/track/`, { data: bodyDetails })
       .then(resp => resp.data)
       .catch(err => console.error(err))
     }
 
     // returns {track_user_dept: Array(1), track_user_sta: Array(1), track_user_app: Array(0)}
-    let userTracks = await axios.get(`${hostname}/api/users/track/${userID}`)
+    let userTracks = await axios.get(`${HOSTNAME}:${PORT}/api/users/track/${userID}`)
       .then(resp => resp.data)
 
     //rebuild assignments for rerender
@@ -261,18 +263,18 @@ export default class App extends React.Component {
     // if user toggled subscription on
     if (shouldTurnOn) {
       // post record tracking station
-      await axios.post(`${hostname}/api/users/track`, bodyDetails)
+      await axios.post(`${HOSTNAME}:${PORT}/api/users/track`, bodyDetails)
       .then(resp => resp.data)
       .catch(err => console.error(err))
     } else { // else remove subscription
-      await axios.delete(`${hostname}/api/users/track/`, {data: bodyDetails})
+      await axios.delete(`${HOSTNAME}:${PORT}/api/users/track/`, {data: bodyDetails})
       .then(resp => resp.data)
       .catch(err => console.error(err))
     }
 
     // fetch new results reflecting change from above patch
     // returns {track_user_dept: Array(1), track_user_sta: Array(1), track_user_app: Array(0)}
-    let userTracks = await axios.get(`${hostname}/api/users/track/${userID}`)
+    let userTracks = await axios.get(`${HOSTNAME}:${PORT}/api/users/track/${userID}`)
                                 .then(resp => resp.data)
     // rebuild assignments for rerender
     let userStationAssignmentData = await this.buildStationAssigment(this.state.allStations, userTracks.track_user_sta);

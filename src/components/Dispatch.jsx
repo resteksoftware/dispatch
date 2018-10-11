@@ -9,8 +9,11 @@ import Map2D from './Map2D';
 import Map3D from './Map3D';
 import RespondOptions from './RespondOptions';
 import callTypeToColors from '../utils/callTypeColor';
-const hostname = 'http://localhost:8080' // TODO: change this to ternary for production vs dev
+
 const DEBUG = false
+const HOSTNAME =`http://${location.hostname}`
+const PORT = 8080
+
 let alarmColor = 'mediumseagreen'
 let Title;
 
@@ -52,7 +55,7 @@ const DispatchDetails = styled.ul`
     padding: 0;
     margin: 0;
     list-style: none;
-    
+
     li:nth-child(odd) {
       font-family: 'Anonymous Pro';
       color: firebrick;
@@ -63,12 +66,12 @@ const DispatchDetails = styled.ul`
         font-size: 1em;
       }
     }
-    
+
     li:nth-child(2n+3) {
       border-bottom: 2px solid white;
       border-top: 2px solid firebrick;
     }
-    
+
     li:nth-child(even) {
       font-family: 'Source Code Pro', monospace;
       color: black;
@@ -185,7 +188,7 @@ const Responder = styled.li`
     letter-spacing: 5px;
     display: flex;
     justify-content: center;
-    
+
     @media screen and (max-device-width: 480px) and (orientation: portrait){
       font-size: 1em;
     }
@@ -237,7 +240,7 @@ export default class Dispatch extends React.Component {
       grid-template-columns: 15px 5fr 15px;
       color: white;
       text-align: center;
-      background-color: ${alarmColor}; 
+      background-color: ${alarmColor};
       letter-spacing: 5px;
       -webkit-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
       -moz-box-shadow: 0px 2px 4px 0px rgba(184,181,184,1);
@@ -261,12 +264,12 @@ export default class Dispatch extends React.Component {
   }
 
   async updateDispatch(incId) {
-    
+
     let params  = { params: { inc_id: incId } }
-    let dispatch = await axios.get(`${hostname}/api/incidents/`, params).then(resp => resp.data)
-    let response = await axios.get(`${hostname}/api/responses/inc-id/${incId}`).then(resp => resp.data)
+    let dispatch = await axios.get(`${HOSTNAME}:${PORT}/api/incidents/`, params).then(resp => resp.data)
+    let response = await axios.get(`${HOSTNAME}:${PORT}/api/responses/inc-id/${incId}`).then(resp => resp.data)
     let appAssignment = this.setApparatus(dispatch.assignments)
-    
+
     this.setState({
       dispatchData: dispatch,
       responseData: response,
@@ -278,28 +281,28 @@ export default class Dispatch extends React.Component {
       setTimeout(() => resolve(this.updateDispatch(incId)), 3000)
     })
   }
-  
+
   getCurrentLocation() {
     const options = {
       timeout: 60000,
       enableHighAccuracy: false,
       maximumAge: Infinity
     }
-    
+
     navigator.geolocation.getCurrentPosition(position => {
       let userCoords = {
         userLat: position.coords.latitude,
         userLng: position.coords.longitude
       }
       if (DEBUG) console.log('[SUCCESS] navigator.geolocation, captured on init:', userCoords);
-      
+
       this.setState({userCoords: userCoords})
     }, (err) => {
       //TODO: add fallback that grabs approximate location via IP mapping from RIPE db (nfd)
       let errorCodes = {
         0: 'unknown error',
         1: 'permission denied',
-        2: 'position unavailable (error response from location provider)', 
+        2: 'position unavailable (error response from location provider)',
         3: 'timed out'
       }
       if (DEBUG) console.log(`[ERROR] navigatior.geolocation, error code ${err.code}: ${errorCodes[err.code]}`);
@@ -311,45 +314,45 @@ export default class Dispatch extends React.Component {
       this.setState({userCoords: userCoords})
     }, options );
   }
-  
+
   setUserData() {
     let userData = Object.assign({}, this.props.userData)
     this.setState({ userData: userData })
   }
-  
+
   setResponseData() {
     let responseData = Object.assign({}, this.props.responseData)
     responseData.resp_user = responseData.resp_user.filter(responder => responder.closing_resp_timestamp === null)
-    
+
     // TODO: add filter logic for apparatus that have already responded
     this.setState({ responseData: responseData })
   }
-  
+
   parseCallCategory() {
-    
+
     let dispatchTitle = this.props.dispatchData.inc_category
     .slice(0)
     .replace(/\//g, '/\n');
 
     this.setState({dispatchTitle: dispatchTitle});
   }
-  
+
   setApparatus(newAssignment) {
-    
+
     //incoming props seems unpredictable with , and ' '
     let assignments = newAssignment || this.props.dispatchData.assignments;
     let apparatusData = assignments[assignments.length - 1].assignment
     .replace(/\s/g, ',') //replace spaces with commas
     .split(',')
     .filter(apparatus => apparatus !== ',' && apparatus !== '' );
-    
+
     if (!newAssignment) {
       this.setState({apparatusAssignment: apparatusData})
     } else {
       return apparatusData
     }
   }
-  
+
   async getDestinationData(dispatchData) {
     let { latitude, longitude, city, location } = dispatchData
     if (latitude && longitude) {
@@ -358,19 +361,19 @@ export default class Dispatch extends React.Component {
         destinationLng: parseFloat(longitude)
       }
       this.setState({destinationCoords: destinationCoords})
-      
+
     } else {
       console.log('Destination Coordinates not provided.')
       console.log('fallback from FE has been removed.')
     }
   }
-  
+
   setTimeAgo () {
     // parse string to date object
     let timeout = parse(this.props.dispatchData.timeout)
     // set formattedTimeout to render in dispatch
     this.setState({formattedTimeout: format(timeout, 'HH:mm:ss MM/DD/YYYY')})
-    
+
     // compare distance between now and dispatch timeout
     let currTimeAgo = distanceInWordsToNow( timeout, {addSuffix: true})
     currTimeAgo = currTimeAgo.split(' ')
@@ -385,65 +388,65 @@ export default class Dispatch extends React.Component {
     // set timeAgo to display under dispatch title
     this.setState({timeAgo: formattedTimeAgo})
   }
-  
+
   responseToggle() {
     this.setState({ responseToggle: !this.state.responseToggle })
   }
-  
+
   /**
-  * 
+  *
   * @param {number} incId (incident_id) passed in from different incident user is responding to
   * this function is called when a user is ending a response, either from this
   * incident or from another incident
   */
   async handleEndResponse() {
-    
+
     let responders;
     let updatedUserData;
     // TODO: meditate adding fields to responses tables for gps origin, status (nfd)
-    
+
     let userLocation = `{lat:${this.state.userCoords.userLat},lng:${this.state.userCoords.userLng}}`
-    
+
     let responseDetails = {
       closing_resp_timestamp: Date.now(),
       closing_resp_gps: userLocation
     }
-    
-    await axios.patch(`${hostname}/api/responses/user/${this.state.respUserId}`, responseDetails)
-    
+
+    await axios.patch(`${HOSTNAME}:${PORT}/api/responses/user/${this.state.respUserId}`, responseDetails)
+
     // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
-    responders = await axios.get(`${hostname}/api/responses/inc-id/${this.props.dispatchData.inc_id}`)
+    responders = await axios.get(`${HOSTNAME}:${PORT}/api/responses/inc-id/${this.props.dispatchData.inc_id}`)
     .then(responseData => {
       responseData.data.resp_user = responseData.data.resp_user.filter(resp => resp.closing_resp_timestamp === null)
       return responseData.data
     })
-    updatedUserData = await axios.get(`${hostname}/api/users/user-id/${this.state.userData.user_id}`).then(resp => resp.data)
+    updatedUserData = await axios.get(`${HOSTNAME}:${PORT}/api/users/user-id/${this.state.userData.user_id}`).then(resp => resp.data)
     this.setState({
       responseData: responders,
       userData: updatedUserData
     })
     this.setResponseStatus()
     return
-    
+
   }
-  
+
   /**
-  * 
+  *
   * @param {boolean} isDirect (if user is responding direct or from station)
   * this function is called when a user is responding to incident
   */
-  
+
   async handleResponse(isDirect) {
     let responders;
     let updatedUserData;
     // TODO: meditate adding fields to responses tables for gps origin, status (nfd)
-    
+
     let userLocation = {
       lat: this.state.userCoords.userLat,
       lng: this.state.userCoords.userLng
     }
-    
-    let responseDetails = {     
+
+    let responseDetails = {
       inc_id: this.props.dispatchData.inc_id,
       user_id: this.props.userData.user_id,
       respond_direct: isDirect,
@@ -454,19 +457,19 @@ export default class Dispatch extends React.Component {
       closing_resp_timestamp: null,
       closing_resp_gps: null
     }
-    
+
     if (isDirect === true) {
-      await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res=>console.log('Success handling response',res.data))
+      await axios.post(`${HOSTNAME}:${PORT}/api/responses/user`, responseDetails).then(res=>console.log('Success handling response',res.data))
     } else { // user is responding from their default station
-      // TODO: modify initial query for user data to get default_station coordinates 
+      // TODO: modify initial query for user data to get default_station coordinates
       // then use coordinates to calculate distance for response status (nfd)
       // for reference Station 4's gps is: 41.038147, -73.665000
       responseDetails.init_resp_gps = '{lat: 41.038147, lng: -73.665000}'
-      await axios.post(`${hostname}/api/responses/user`, responseDetails).then(res => console.log('Success handling response', res.data))
+      await axios.post(`${HOSTNAME}:${PORT}/api/responses/user`, responseDetails).then(res => console.log('Success handling response', res.data))
     }
     // returns { resp_user: [ {..}, ..], resp_app: [ {..}, ..] }
-    responders = await axios.get(`${hostname}/api/responses/inc-id/${responseDetails.inc_id}`).then(resp => resp.data) 
-    updatedUserData = await axios.get(`${hostname}/api/users/user-id/${this.state.userData.user_id}`).then(resp => resp.data)
+    responders = await axios.get(`${HOSTNAME}:${PORT}/api/responses/inc-id/${responseDetails.inc_id}`).then(resp => resp.data)
+    updatedUserData = await axios.get(`${HOSTNAME}:${PORT}/api/users/user-id/${this.state.userData.user_id}`).then(resp => resp.data)
     this.setState({
       responseData: responders,
       userData: updatedUserData
@@ -474,7 +477,7 @@ export default class Dispatch extends React.Component {
     this.setResponseStatus()
     return
   }
-  
+
   setResponseStatus() {
     let userResp = this.state.userData ? this.state.userData.responses : this.props.userData.responses
     // default is for user to respond
@@ -509,7 +512,7 @@ export default class Dispatch extends React.Component {
             respUserId = resp.resp_user_id
           }
         }
-        
+
         if (responseStatus === '') {
           if (DEBUG) console.log('had some responses but all of them closed');
           // user had some responses in collection
@@ -518,15 +521,15 @@ export default class Dispatch extends React.Component {
         }
       })
     }
-    this.setState({ 
+    this.setState({
       responseStatus: responseStatus,
       respUserId: respUserId
     })
   }
-  
+
   render() {
-    
-    let { 
+
+    let {
       cross_street,
       inc_description,
       location,
@@ -535,11 +538,11 @@ export default class Dispatch extends React.Component {
       map_ref,
       radio_freq,
       remarks } = this.state.dispatchData;
-      
+
     let currentRemark = remarks[remarks.length - 1].remark
-      
+
       return (
-        
+
         <DispatchContainer key={'disp1'}>
         <Title key={'disp2'}>
         <Description key={'disp3'}>
@@ -547,33 +550,33 @@ export default class Dispatch extends React.Component {
         </Description>
         <Timeout key={'disp4'}>{this.state.timeAgo ? this.state.timeAgo : null}</Timeout>
         </Title>
-        
+
         {
           this.props.userData.is_volley && this.state.responseStatus !== '' ?
           (this.state.responseToggle ?
-            <ResponseSelect 
+            <ResponseSelect
               key={'disp5'}
               onClick={this.responseToggle}>
-            <RespondOptions 
+            <RespondOptions
             key={'disp6'}
-            handleResponse={this.handleResponse} 
+            handleResponse={this.handleResponse}
             handleEndResponse={this.handleEndResponse}
             responseStatus={this.state.responseStatus}
                     incId={this.state.dispatchData.inc_id} />
-            
+
             </ResponseSelect>
-            : <ResponseThumb 
+            : <ResponseThumb
                 key={'disp7'}
                 onClick={this.responseToggle}>
-                <ResponseArrow/>  
+                <ResponseArrow/>
               </ResponseThumb>)
-            : null  
+            : null
           }
-          
+
           <DispatchDetails key={'disp8'}>
           <li>Apparatus Assigned: </li>
           <ApparatusContainer>
-          
+
           {
             !this.state.apparatusAssignment
             ? null
@@ -624,7 +627,7 @@ export default class Dispatch extends React.Component {
           }
           </li>
           <li key={'disp25'}>Destination:</li>
-          <li key={'disp26'}>  
+          <li key={'disp26'}>
           {
             !this.state.destinationCoords ? null :
             <Map3D key={'disp27'} destinationCoords={this.state.destinationCoords}/>
@@ -634,21 +637,21 @@ export default class Dispatch extends React.Component {
           </DispatchDetails>
           <ResponseContainer key={'disp29'}>
           {
-            !this.state.responseData ? 
+            !this.state.responseData ?
             null : (
-              this.state.responseData.resp_user.length === 0 ? 
+              this.state.responseData.resp_user.length === 0 ?
                   'NO RESPONDERS AT THIS TIME' :
                   this.state.responseData.resp_user.map((responder) => {
                     return responder.closing_resp_timestamp === null ? <Responder key={`resp-${responder.first_name + responder.last_name}`}>{`${responder.first_name} ${responder.last_name} (${rankAbbr[responder.rank]})`}</Responder> : null
                   }) )
-            
+
           }
           </ResponseContainer>
-          
+
           </DispatchContainer>
-          
+
           )
-          
+
         }
       }
-      
+
